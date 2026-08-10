@@ -47,6 +47,21 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+
+            /*
+             * Entrega pelo servidor de e-mail da propria maquina.
+             *
+             * O Exim so aceita relay de 127.0.0.1, mas o certificado dele e
+             * emitido para o nome do host — conectar pelo IP faz o STARTTLS
+             * falhar na verificacao do CN, e conectar pelo nome sai e volta
+             * pelo IP publico, que o Exim recusa como relay.
+             *
+             * Com auto_tls desligado a conexao fica em texto puro dentro do
+             * loopback: nada trafega em rede, entao nao ha o que interceptar.
+             * Ligue de novo (MAIL_AUTO_TLS=true) se um dia o envio passar a
+             * usar um servidor de e-mail externo — ai o TLS e obrigatorio.
+             */
+            'auto_tls' => env('MAIL_AUTO_TLS', true),
         ],
 
         'ses' => [
