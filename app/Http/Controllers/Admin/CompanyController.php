@@ -110,6 +110,11 @@ class CompanyController extends Controller
                 'status',
                 "{$company->email} já tem acesso ativo ao painel. Se precisar, use \"Reenviar mesmo assim\"."
             ),
+            ProvisionCompanyAccess::SEND_FAILED => back()->with(
+                'warning',
+                "O acesso ao painel foi criado, mas o e-mail para {$company->email} não pôde ser enviado. ".
+                'Verifique a configuração de e-mail do servidor e use "Enviar convite" de novo.'
+            ),
             ProvisionCompanyAccess::RESENT => back()->with(
                 'status',
                 "Convite reenviado para {$company->email}."
@@ -175,9 +180,20 @@ class CompanyController extends Controller
 
     public function approve(Company $company)
     {
-        $this->moderation->approve($company, request()->user());
+        $resultado = $this->moderation->approve($company, request()->user());
 
-        return back()->with('status', "Empresa \"{$company->name}\" aprovada e publicada no portal.");
+        $redirect = back()->with('status', "Empresa \"{$company->name}\" aprovada e publicada no portal.");
+
+        // A aprovacao valeu de qualquer jeito; o convite e que pode ter falhado.
+        if (($resultado['status'] ?? null) === ProvisionCompanyAccess::SEND_FAILED) {
+            $redirect->with(
+                'warning',
+                "O convite de acesso não pôde ser enviado para {$company->email}. ".
+                'Verifique a configuração de e-mail e reenvie pelo botão "Enviar convite".'
+            );
+        }
+
+        return $redirect;
     }
 
     public function reject(Request $request, Company $company)

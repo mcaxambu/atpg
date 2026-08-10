@@ -10,6 +10,20 @@
     </div>
 @endif
 
+{{-- Aviso: a operacao deu certo, mas algo secundario falhou (um e-mail que nao
+     saiu, por exemplo). Nao e erro nem sucesso limpo. --}}
+@if (session('warning'))
+    <div x-data="{ show: true }" x-show="show" x-transition
+         class="flex items-start gap-3 rounded-2xl border border-warning-200 bg-warning-50 px-5 py-4 dark:border-warning-500/30 dark:bg-warning-500/10">
+        <x-admin.icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-warning-600 dark:text-warning-400" />
+        <p class="flex-1 text-sm font-medium text-warning-800 dark:text-warning-200">{{ session('warning') }}</p>
+        <button type="button" @click="show = false" class="text-warning-600 hover:text-warning-800 dark:text-warning-400">
+            <x-admin.icon name="x" class="h-4 w-4" />
+            <span class="sr-only">Fechar aviso</span>
+        </button>
+    </div>
+@endif
+
 @if ($errors->any())
     <div class="rounded-2xl border border-error-200 bg-error-50 px-5 py-4 dark:border-error-500/30 dark:bg-error-500/10">
         <div class="flex items-center gap-2">

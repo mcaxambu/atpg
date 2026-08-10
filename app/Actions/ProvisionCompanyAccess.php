@@ -26,6 +26,8 @@ class ProvisionCompanyAccess
 
     public const EMAIL_TAKEN = 'email_taken';
 
+    public const SEND_FAILED = 'send_failed';
+
     /**
      * @return array{status: string, user: ?User}
      */
@@ -71,7 +73,29 @@ class ProvisionCompanyAccess
         }
 
         $wasInvited = $user->invited_at !== null;
-        $user->sendCompanyInvitation();
+
+        /*
+         * O envio nao pode derrubar a operacao.
+         *
+         * Isto e chamado de dentro da aprovacao: quando o servidor de e-mail
+         * esta fora do ar, a excecao do transporte subia ate virar erro 500 e
+         * o administrador ficava sem saber que a empresa ja tinha sido
+         * aprovada — porque tinha, a gravacao acontece antes.
+         *
+         * O acesso fica criado de qualquer forma; basta reenviar o convite
+         * quando o e-mail voltar.
+         */
+        try {
+            $user->sendCompanyInvitation();
+        } catch (\Throwable $exception) {
+            Log::error('Falha ao enviar o convite de acesso ao painel.', [
+                'company_id' => $company->getKey(),
+                'user_id' => $user->getKey(),
+                'message' => $exception->getMessage(),
+            ]);
+
+            return ['status' => self::SEND_FAILED, 'user' => $user];
+        }
 
         return [
             'status' => $wasInvited ? self::RESENT : self::INVITED,

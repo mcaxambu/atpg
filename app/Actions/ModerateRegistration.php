@@ -18,7 +18,11 @@ class ModerateRegistration
 {
     public function __construct(private readonly ProvisionCompanyAccess $provisionAccess) {}
 
-    public function approve(Model $subject, ?User $reviewer = null): void
+    /**
+     * @return array{status: string, user: ?User}|null resultado do provisionamento,
+     *                                                 para que a tela possa avisar quando o convite nao saiu
+     */
+    public function approve(Model $subject, ?User $reviewer = null): ?array
     {
         $subject->approve($reviewer);
 
@@ -26,8 +30,10 @@ class ModerateRegistration
 
         // Empresa aprovada ganha acesso ao proprio painel.
         if ($subject instanceof Company) {
-            ($this->provisionAccess)($subject);
+            return ($this->provisionAccess)($subject);
         }
+
+        return null;
     }
 
     public function reject(Model $subject, ?string $reason, ?User $reviewer = null): void
