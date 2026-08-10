@@ -1,0 +1,50 @@
+﻿@extends('layouts.portal')
+
+@section('title', $post->title . ' | Portal Associação Tech PG')
+
+@section('content')
+<article class="post-page">
+    <a class="back-link" href="{{ route('posts.index') }}">Voltar para notícias</a>
+
+    <header class="post-hero">
+        <div>
+            <span class="eyebrow">{{ $post->category }}</span>
+            <h1>{{ $post->title }}</h1>
+            <div class="post-meta">
+                <span>{{ $post->published_at?->format('d/m/Y H:i') }}</span>
+                <span>{{ $post->reading_time }} de leitura</span>
+            </div>
+            @if ($post->excerpt)
+                <p>{{ $post->excerpt }}</p>
+            @endif
+        </div>
+    </header>
+
+    @if ($post->cover_image)
+        <figure class="post-featured-image">
+            <img src="{{ asset('storage/' . $post->cover_image) }}" alt="Capa {{ $post->title }}">
+        </figure>
+    @endif
+
+    <div class="post-content">
+        {!! nl2br(e($post->body)) !!}
+    </div>
+
+    @if ($relatedPosts->isNotEmpty())
+        <section class="section related-posts">
+            <div class="section-heading row">
+                <div>
+                    <span class="eyebrow">Leia também</span>
+                    <h2>Outras notícias da associação</h2>
+                </div>
+                <a class="secondary-button" href="{{ route('posts.index') }}">Ver todas</a>
+            </div>
+            <div class="post-grid">
+                @foreach ($relatedPosts as $relatedPost)
+                    @include('portal.partials.post-card', ['post' => $relatedPost])
+                @endforeach
+            </div>
+        </section>
+    @endif
+</article>
+@endsection

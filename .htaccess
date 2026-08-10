@@ -1,0 +1,21 @@
+# This directory is the Laravel project root.
+# Public HTTP traffic must be served by the public/ directory.
+
+Options -Indexes
+
+<FilesMatch "(^\.env|\.env\..*|composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|README\.md|vite\.config\.js|\.gitignore|\.gitattributes|\.editorconfig)$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 403 ^/atpg/(\.git|app|bootstrap|config|database|resources|routes|tests|vendor|node_modules)(/.*)?$
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /atpg/
+
+    RewriteCond %{DOCUMENT_ROOT}/atpg/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/atpg/public/$1 -d
+    RewriteRule ^(.+)$ public/$1 [L]
+
+    RewriteRule ^.*$ public/index.php [L,QSA]
+</IfModule>

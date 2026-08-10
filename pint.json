@@ -1,0 +1,10 @@
+{
+    "preset": "laravel",
+    "exclude": [
+        "tailadmin",
+        "bootstrap/cache",
+        "storage",
+        "node_modules",
+        "vendor"
+    ]
+}

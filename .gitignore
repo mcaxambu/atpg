@@ -1,0 +1,48 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# ---------------------------------------------------------------------------
+# Específico deste projeto
+# ---------------------------------------------------------------------------
+
+# Tema TailAdmin vendorizado: 12 MB e 299 arquivos que não são usados em
+# tempo de execução. O que aproveitamos dele já está em resources/.
+/tailadmin
+
+# Scripts de operação: contêm IP do servidor, caminhos e o procedimento de
+# deploy. Ficam no servidor, fora do repositório compartilhado.
+/.ops
+
+*.original
+*.anterior.png
+
+# Credenciais que os scripts gravam no servidor
+*.creds
+
+# Script de teste manual antigo, substituído pela suíte automatizada
+/test-crud.ps1

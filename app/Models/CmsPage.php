@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class CmsPage extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        'excerpt',
+        'body',
+        'hero_image',
+        'is_published',
+        'show_in_menu',
+        'position',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
+        'show_in_menu' => 'boolean',
+        'position' => 'integer',
+    ];
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('is_published', true);
+    }
+
+    public function getExcerptTextAttribute(): string
+    {
+        return $this->excerpt ?: Str::limit(strip_tags($this->body ?? ''), 160);
+    }
+}

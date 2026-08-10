@@ -1,0 +1,402 @@
+:root {
+    --admin-bg: #f9fafb;
+    --admin-panel: #ffffff;
+    --admin-line: #e4e7ec;
+    --admin-ink: #101828;
+    --admin-muted: #667085;
+    --admin-brand: #465fff;
+    --admin-brand-dark: #3641f5;
+    --admin-sidebar: #ffffff;
+    --admin-radius: 14px;
+    --admin-shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.admin-body {
+    margin: 0;
+    background: var(--admin-bg);
+    color: var(--admin-ink);
+    font-family: Outfit, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.admin-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr);
+}
+
+.admin-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    padding: 28px 20px;
+    background: var(--admin-sidebar);
+    border-right: 1px solid var(--admin-line);
+}
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--admin-ink);
+}
+
+.admin-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    color: white;
+    background: linear-gradient(135deg, var(--admin-brand), #0ea5a8);
+    font-weight: 900;
+}
+
+.admin-brand strong,
+.admin-brand small {
+    display: block;
+}
+
+.admin-brand small,
+.admin-kicker,
+.admin-nav-title,
+.admin-sidebar-card p {
+    color: var(--admin-muted);
+}
+
+.admin-nav {
+    display: grid;
+    gap: 6px;
+}
+
+.admin-nav-title {
+    margin: 16px 12px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.admin-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    color: #344054;
+    font-weight: 800;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+    color: var(--admin-brand);
+    background: #eef4ff;
+}
+
+.admin-sidebar-card {
+    margin-top: auto;
+    padding: 18px;
+    border-radius: var(--admin-radius);
+    background: #f2f4f7;
+}
+
+.admin-sidebar-card strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.admin-sidebar-card p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.admin-main {
+    min-width: 0;
+}
+
+.admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 28px;
+    background: rgba(255, 255, 255, .94);
+    border-bottom: 1px solid var(--admin-line);
+    backdrop-filter: blur(14px);
+}
+
+.admin-header h1 {
+    margin: 2px 0 0;
+    font-size: 22px;
+}
+
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-header-actions a,
+.admin-logout-button,
+.admin-user {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--admin-line);
+    border-radius: 10px;
+    background: white;
+    color: #344054;
+    font-weight: 800;
+}
+
+.admin-logout-button {
+    cursor: pointer;
+}
+
+.admin-user {
+    color: white;
+    background: var(--admin-brand);
+    border-color: var(--admin-brand);
+}
+
+.admin-content {
+    padding: 28px;
+}
+
+.admin-content .page-section,
+.admin-content .form-page,
+.admin-content .dashboard-page {
+    padding: 0;
+    background: transparent;
+}
+
+.admin-content .page-title {
+    padding: 0;
+}
+
+.admin-content .content-card,
+.admin-content .member-form,
+.admin-content .stat-card {
+    border-color: var(--admin-line);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow);
+}
+
+.admin-content .primary-button {
+    background: var(--admin-brand);
+    box-shadow: none;
+}
+
+.admin-content .primary-button:hover {
+    background: var(--admin-brand-dark);
+}
+
+.admin-content .secondary-button,
+.admin-content .row-actions a,
+.admin-content .row-actions button {
+    border-color: var(--admin-line);
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.admin-content .table-row {
+    border-color: var(--admin-line);
+    border-radius: 12px;
+}
+
+@media (max-width: 980px) {
+    .admin-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+        position: static;
+        height: auto;
+    }
+
+    .admin-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+.registration-body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(70, 95, 255, .12), transparent 30%),
+        linear-gradient(180deg, #f9fafb 0%, #eef4ff 100%);
+    color: var(--admin-ink);
+    font-family: Outfit, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.registration-shell {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 42px 0;
+}
+
+.registration-card {
+    padding: clamp(22px, 4vw, 38px);
+    border: 1px solid var(--admin-line);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 20px 60px rgba(16, 24, 40, .10);
+}
+
+.registration-header {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
+    align-items: start;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--admin-line);
+}
+
+.registration-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--admin-ink);
+}
+
+.registration-brand strong,
+.registration-brand small {
+    display: block;
+}
+
+.registration-brand small,
+.registration-header p,
+.tail-form small {
+    color: var(--admin-muted);
+}
+
+.registration-header h1 {
+    margin: 4px 0 8px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.08;
+}
+
+.registration-header p {
+    max-width: 680px;
+    margin: 0;
+    line-height: 1.65;
+}
+
+.tail-form {
+    display: grid;
+    gap: 20px;
+}
+
+.tail-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.tail-form label {
+    display: grid;
+    gap: 8px;
+    color: #344054;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.tail-form input,
+.tail-form select,
+.tail-form textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+    border: 1px solid var(--admin-line);
+    border-radius: 10px;
+    background: white;
+    color: var(--admin-ink);
+    font-weight: 500;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.tail-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.tail-form input:focus,
+.tail-form select:focus,
+.tail-form textarea:focus {
+    border-color: #9cb9ff;
+    box-shadow: 0 0 0 4px rgba(70, 95, 255, .10);
+}
+
+.tail-checkbox-panel {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid var(--admin-line);
+    border-radius: 14px;
+    background: #f9fafb;
+}
+
+.tail-checkbox-panel legend {
+    padding: 0 8px;
+    color: var(--admin-ink);
+    font-weight: 800;
+}
+
+.tail-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.tail-checkbox-grid label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--admin-line);
+    border-radius: 10px;
+    background: white;
+    color: #344054;
+    font-weight: 700;
+}
+
+.tail-checkbox-grid input {
+    width: 18px;
+    height: 18px;
+    min-height: 18px;
+    padding: 0;
+    accent-color: var(--admin-brand);
+    box-shadow: none;
+}
+
+.tail-checkbox-grid span {
+    line-height: 1.25;
+}
+
+.registration-success {
+    max-width: 720px;
+    border-radius: 16px;
+    box-shadow: var(--admin-shadow);
+}
+
+@media (max-width: 980px) {
+    .registration-header,
+    .tail-form-grid,
+    .tail-checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 981px) and (max-width: 1240px) {
+    .tail-checkbox-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
