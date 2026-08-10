@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Eventos | Portal Associação Tech PG')
 @section('page_heading', 'Eventos')

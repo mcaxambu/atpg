@@ -1,4 +1,4 @@
-﻿@extends('layouts.registration')
+@extends('layouts.registration')
 
 @section('title', 'Cadastro de membro | Portal Associação Tech PG')
 

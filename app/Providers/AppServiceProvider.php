@@ -36,7 +36,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        /*
+         * Na producao o DirectAdmin serve o site a partir de public_html, que
+         * fica fora da pasta da aplicacao. Sem avisar o Laravel, public_path()
+         * aponta para uma copia que ninguem le — e o ?v= do portal.css, que sai
+         * do filemtime desse arquivo, congela num valor antigo. O navegador
+         * entao guarda o CSS velho para sempre, e cada publicacao parece nao
+         * ter efeito.
+         *
+         * Em desenvolvimento a variavel fica vazia e vale o padrao.
+         */
+        if ($publico = env('APP_PUBLIC_PATH')) {
+            $this->app->usePublicPath($publico);
+        }
     }
 
     public function boot(): void

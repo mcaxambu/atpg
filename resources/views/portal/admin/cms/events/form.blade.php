@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', ($event->exists ? 'Editar evento' : 'Novo evento') . ' | Portal Associação Tech PG')
 @section('page_heading', $event->exists ? 'Editar evento' : 'Novo evento')

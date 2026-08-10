@@ -1,4 +1,4 @@
-﻿@extends('layouts.portal')
+@extends('layouts.portal')
 
 @section('title', ($cmsPage?->title ?? 'Benefícios') . ' | Portal Associação Tech PG')
 

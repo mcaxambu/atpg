@@ -1,4 +1,4 @@
-﻿@extends('layouts.portal')
+@extends('layouts.portal')
 
 @section('title', $post->title . ' | Portal Associação Tech PG')
 
@@ -6,7 +6,11 @@
 <article class="post-page">
     <a class="back-link" href="{{ route('posts.index') }}">Voltar para notícias</a>
 
-    <header class="post-hero">
+    {{-- A capa da propria noticia e o fundo do cabecalho. Antes havia uma foto
+         de banco de imagens fixa aqui e a capa aparecia de novo logo abaixo:
+         duas imagens concorrendo pela mesma funcao. --}}
+    <header class="post-hero @if ($post->cover_image) has-cover @endif"
+            @if ($post->cover_image) style="--post-cover: url('{{ asset('storage/' . $post->cover_image) }}')" @endif>
         <div>
             <span class="eyebrow">{{ $post->category }}</span>
             <h1>{{ $post->title }}</h1>
@@ -20,14 +24,8 @@
         </div>
     </header>
 
-    @if ($post->cover_image)
-        <figure class="post-featured-image">
-            <img src="{{ asset('storage/' . $post->cover_image) }}" alt="Capa {{ $post->title }}">
-        </figure>
-    @endif
-
     <div class="post-content">
-        {!! nl2br(e($post->body)) !!}
+        {!! $post->rendered_body !!}
     </div>
 
     @if ($relatedPosts->isNotEmpty())

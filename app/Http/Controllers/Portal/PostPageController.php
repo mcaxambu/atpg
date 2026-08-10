@@ -10,11 +10,24 @@ class PostPageController extends Controller
 {
     public function index(PortalData $portalData)
     {
+        $posts = Post::query()
+            ->published()
+            ->latest('published_at')
+            ->paginate(9);
+
+        /*
+         * A mais recente vira destaque, mas so na primeira pagina: "destaque"
+         * na pagina 3 nao quer dizer nada, e o leitor que ja esta paginando
+         * quer varrer titulos, nao um banner por pagina.
+         */
+        $featured = $posts->onFirstPage() ? $posts->getCollection()->first() : null;
+
         return view('portal.posts.index', $portalData->merge([
-            'posts' => Post::query()
-                ->published()
-                ->latest('published_at')
-                ->paginate(9),
+            'posts' => $posts,
+            'featured' => $featured,
+            'otherPosts' => $featured
+                ? $posts->getCollection()->slice(1)
+                : $posts->getCollection(),
         ]));
     }
 

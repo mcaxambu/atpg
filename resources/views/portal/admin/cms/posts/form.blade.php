@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', ($post->exists ? 'Editar notícia' : 'Nova notícia') . ' | Portal Associação Tech PG')
 @section('page_heading', $post->exists ? 'Editar notícia' : 'Nova notícia')
@@ -44,7 +44,7 @@
                 <label class="block lg:col-span-2">
                     <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Texto da notícia</span>
                     <textarea class="min-h-72 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" name="body" required>{{ old('body', $post->body) }}</textarea>
-                    <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Use paragrafos simples. A exibição pública preserva quebras de linha.</span>
+                    <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Aceita Markdown, igual às atas: <code>## subtítulo</code>, <code>- lista</code>, <code>1. numerada</code>, <code>**negrito</code><code>**</code>, <code>[link](url)</code>, <code>&gt; citação</code>. Texto corrido também funciona; separe parágrafos com uma linha em branco.</span>
                 </label>
             </div>
         </section>

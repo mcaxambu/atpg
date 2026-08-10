@@ -344,9 +344,7 @@ button, input, select, textarea { font: inherit; }
     display: grid;
     place-items: center;
     aspect-ratio: 16 / 9;
-    background:
-        linear-gradient(135deg, rgba(15, 76, 129, .92), rgba(14, 165, 168, .82)),
-        url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80") center/cover;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 60%, var(--brand-3) 100%);
     color: white;
     font-weight: 900;
 }
@@ -393,9 +391,7 @@ button, input, select, textarea { font: inherit; }
     padding: clamp(32px, 5vw, 54px);
     border-radius: 8px;
     color: white;
-    background:
-        linear-gradient(120deg, rgba(11, 23, 39, .95), rgba(15, 76, 129, .84)),
-        url("https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80") center/cover;
+    background: linear-gradient(120deg, var(--navy), var(--brand) 55%, var(--brand-2));
 }
 .post-hero h1 {
     max-width: 950px;
@@ -2953,4 +2949,248 @@ h3,
 
 .partner-grid article.is-linked:hover img {
     transform: scale(1.04);
+}
+
+/* ---------------------------------------------------------------------------
+   Listagem de noticias: destaque + grade
+   ---------------------------------------------------------------------------
+   A noticia mais recente ocupa a largura toda, com a capa a esquerda e o texto
+   a direita. As demais seguem na grade de tres colunas de sempre. E o formato
+   de portal de noticias: sem hierarquia, todas as chamadas competem entre si e
+   nenhuma ganha.
+*/
+
+.post-featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    margin-bottom: 22px;
+}
+
+/* A capa precisa de uma altura definida: com "height: 100%" dentro de uma
+   linha de grade de altura automatica, o percentual nao resolve e a imagem
+   renderiza no tamanho natural — 661px de altura no caso de uma foto 1920x1080.
+   A proporcao define a altura; a imagem em posicao absoluta cobre a celula
+   mesmo quando o texto ao lado for mais alto. */
+.post-featured .post-cover {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    height: auto;
+}
+
+.post-featured .post-cover img {
+    position: absolute;
+    inset: 0;
+}
+
+.post-featured .post-card-body {
+    justify-content: center;
+    padding: clamp(24px, 3.2vw, 40px);
+}
+
+.post-featured h2 {
+    margin: 0;
+    font-size: clamp(1.6rem, 2.7vw, 2.35rem);
+    line-height: 1.14;
+}
+
+.post-featured h2 a {
+    color: inherit;
+    transition: color .2s ease;
+}
+
+.post-featured h2 a:hover {
+    color: var(--brand-3);
+}
+
+.post-featured p {
+    font-size: 1.05rem;
+}
+
+.post-badge {
+    align-self: flex-start;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: white;
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+/* A capa do destaque e alta o bastante para um recorte centralizado cortar a
+   cabeca das pessoas em fotos de evento. Puxar o enquadramento para cima
+   preserva o terco superior, que e onde quase sempre esta o assunto. */
+.post-featured .post-cover img {
+    object-position: center 35%;
+}
+
+@media (max-width: 900px) {
+    .post-featured {
+        grid-template-columns: 1fr;
+    }
+
+    .post-featured .post-cover {
+        aspect-ratio: 16 / 9;
+        min-height: 0;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Pagina da noticia
+   ---------------------------------------------------------------------------
+   O corpo passou a ser Markdown, entao aqui existem de verdade subtitulo,
+   lista, citacao e destaque — antes era tudo <br> e nao havia o que estilizar.
+*/
+
+/* A capa da noticia entra como fundo do cabecalho, com uma camada escura por
+   cima para o texto branco continuar legivel sobre qualquer foto. Sem capa,
+   fica so o gradiente da marca. */
+.post-hero.has-cover {
+    background:
+        linear-gradient(120deg, rgba(11, 23, 39, .92), rgba(15, 76, 129, .78)),
+        var(--post-cover) center/cover;
+}
+
+.post-hero h1 {
+    margin: 10px 0 0;
+    font-size: clamp(1.75rem, 3.4vw, 2.9rem);
+    line-height: 1.14;
+}
+
+.post-hero > div > p {
+    max-width: 70ch;
+    margin: 16px 0 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: .92;
+}
+
+/* Medida de leitura: linha muito longa faz o olho perder o comeco da proxima.
+   Entre 60 e 75 caracteres e o intervalo confortavel. */
+.post-content > * {
+    max-width: 70ch;
+}
+
+.post-content > *:first-child { margin-top: 0; }
+.post-content > *:last-child  { margin-bottom: 0; }
+
+.post-content p {
+    margin: 0 0 1.35em;
+}
+
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+    margin: 2em 0 .6em;
+    color: var(--ink);
+    line-height: 1.25;
+}
+
+.post-content h2 {
+    padding-bottom: .35em;
+    border-bottom: 2px solid var(--line);
+    font-size: 1.55rem;
+}
+
+.post-content h3 { font-size: 1.24rem; }
+.post-content h4 { font-size: 1.08rem; }
+
+.post-content ul,
+.post-content ol {
+    margin: 0 0 1.35em;
+    padding-left: 1.35em;
+}
+
+.post-content li {
+    margin-bottom: .5em;
+}
+
+.post-content li::marker {
+    color: var(--brand);
+    font-weight: 900;
+}
+
+.post-content a {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.post-content a:hover {
+    color: var(--brand-3);
+}
+
+.post-content strong {
+    color: var(--ink);
+    font-weight: 900;
+}
+
+.post-content blockquote {
+    margin: 1.6em 0;
+    padding: 4px 0 4px 20px;
+    border-left: 4px solid var(--brand);
+    color: var(--ink);
+    font-size: 1.12rem;
+    font-style: italic;
+}
+
+.post-content blockquote p:last-child { margin-bottom: 0; }
+
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 1.6em 0;
+    border-radius: 8px;
+}
+
+.post-content hr {
+    margin: 2.2em 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
+
+.post-content code {
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #eef3f8;
+    font-size: .92em;
+}
+
+.post-content pre {
+    max-width: 100%;
+    margin: 1.6em 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    border-radius: 8px;
+    background: #0f1b2b;
+    color: #e6edf5;
+}
+
+.post-content pre code {
+    padding: 0;
+    background: none;
+    color: inherit;
+}
+
+/* Tabela larga rola dentro do proprio bloco; a pagina nunca rola na horizontal. */
+.post-content table {
+    display: block;
+    max-width: 100%;
+    margin: 1.6em 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+
+.post-content th,
+.post-content td {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    text-align: left;
+}
+
+.post-content th {
+    background: #eef3f8;
+    font-weight: 900;
 }

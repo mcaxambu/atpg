@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\Member;
+use App\Models\Post;
 use App\Models\Specialty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,6 +13,88 @@ use Tests\TestCase;
 class PublicPortalTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * A listagem de noticias destaca a mais recente na primeira pagina. Nas
+     * seguintes a grade e uniforme — um "destaque" por pagina nao destacaria
+     * nada.
+     */
+    #[Test]
+    public function a_noticia_mais_recente_vira_destaque_so_na_primeira_pagina(): void
+    {
+        foreach (range(1, 11) as $i) {
+            Post::create([
+                'title' => "Notícia {$i}",
+                'slug' => "noticia-{$i}",
+                'excerpt' => 'Resumo.',
+                'body' => 'Conteúdo.',
+                'category' => 'Notícias',
+                'is_published' => true,
+                'published_at' => now()->subDays(20 - $i),
+            ]);
+        }
+
+        $this->get(route('posts.index'))
+            ->assertOk()
+            ->assertSee('post-featured', false)
+            ->assertSee('Notícia 11');
+
+        $this->get(route('posts.index', ['page' => 2]))
+            ->assertOk()
+            ->assertDontSee('post-featured', false);
+    }
+
+    /**
+     * O corpo da noticia e Markdown. Antes era nl2br puro: subtitulo e lista
+     * saiam como linhas soltas separadas por <br>.
+     */
+    #[Test]
+    public function o_corpo_da_noticia_e_renderizado_como_markdown(): void
+    {
+        $post = Post::create([
+            'title' => 'Com estrutura',
+            'slug' => 'com-estrutura',
+            'excerpt' => 'Resumo.',
+            'body' => '## Pilares
+
+- Primeiro
+- Segundo
+
+Texto com **destaque**.',
+            'category' => 'Notícias',
+            'is_published' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee('<h2>Pilares</h2>', false)
+            ->assertSee('<li>Primeiro</li>', false)
+            ->assertSee('<strong>destaque</strong>', false);
+    }
+
+    /**
+     * Conteudo de administrador tambem passa pelo escape: uma conta
+     * comprometida nao pode virar XSS armazenado para todo visitante.
+     */
+    #[Test]
+    public function html_cru_na_noticia_nao_e_executado(): void
+    {
+        $post = Post::create([
+            'title' => 'Com script',
+            'slug' => 'com-script',
+            'excerpt' => 'Resumo.',
+            'body' => 'Antes <script>alert(1)</script> depois.',
+            'category' => 'Notícias',
+            'is_published' => true,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertSee('&lt;script&gt;', false);
+    }
 
     #[Test]
     public function todas_as_paginas_publicas_respondem(): void

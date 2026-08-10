@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', ($item->exists ? 'Editar ' : 'Novo ') . $meta['singular'] . ' | CMS')
 @section('page_heading', $item->exists ? 'Editar ' . $meta['singular'] : 'Novo ' . $meta['singular'])

@@ -1,4 +1,4 @@
-﻿@extends('layouts.registration')
+@extends('layouts.registration')
 
 @section('title', 'Entrar no painel')
 

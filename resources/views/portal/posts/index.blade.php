@@ -1,4 +1,4 @@
-﻿@extends('layouts.portal')
+@extends('layouts.portal')
 
 @section('title', 'Notícias | Portal Associação Tech PG')
 
@@ -10,16 +10,24 @@
         <p>Comunicados da associação, eventos, parcerias, oportunidades, cases e conteúdos relevantes para empresas e profissionais de tecnologia.</p>
     </div>
 
-    <div class="post-grid">
-        @forelse ($posts as $post)
-            @include('portal.partials.post-card', ['post' => $post])
-        @empty
-            <article class="content-card empty-state">
-                <h2>Nenhuma notícia publicada ainda</h2>
-                <p>As públicações criadas e publicadas pelo admin aparecerão aqui.</p>
-            </article>
-        @endforelse
-    </div>
+    @if ($featured)
+        @include('portal.partials.post-card-featured', ['post' => $featured])
+    @endif
+
+    @if ($otherPosts->isNotEmpty())
+        <div class="post-grid">
+            @foreach ($otherPosts as $post)
+                @include('portal.partials.post-card', ['post' => $post])
+            @endforeach
+        </div>
+    @endif
+
+    @if ($posts->isEmpty())
+        <article class="content-card empty-state">
+            <h2>Nenhuma notícia publicada ainda</h2>
+            <p>As publicações criadas e publicadas pelo admin aparecerão aqui.</p>
+        </article>
+    @endif
 
     @if ($posts->hasPages())
         <div class="pagination-shell">

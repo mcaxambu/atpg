@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', $meta['title'] . ' | CMS')
 @section('page_heading', $meta['title'])

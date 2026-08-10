@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', ($page->exists ? 'Editar página' : 'Nova página') . ' | Portal Associação Tech PG')
 @section('page_heading', $page->exists ? 'Editar página' : 'Nova página')

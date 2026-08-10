@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Configurações do portal')
 @section('page_heading', 'Configurações do portal')
