@@ -1,0 +1,36 @@
+# Roda a suíte em toda proposta de alteração. É o que permite deixar a
+# publicação automática: main só recebe código que passou aqui.
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Instalar dependências
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Preparar ambiente
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # A suíte usa SQLite em memória (ver phpunit.xml), então não precisa
+      # de banco de dados no runner.
+      - name: Testes
+        run: php artisan test
+
+      - name: Padrão de formatação
+        run: vendor/bin/pint --test

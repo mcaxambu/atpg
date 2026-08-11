@@ -113,8 +113,18 @@ frequente. Migrar esse arquivo para o Vite está na lista de melhorias.
 
 ## Publicação
 
-O deploy é feito por scripts que ficam no servidor, fora deste repositório.
-Fale com quem administra antes de mexer em produção.
+**O que entra na `main` vai para o ar sozinho.** Não existe botão de publicar.
+
+A sequência é: você abre o pull request, o GitHub roda os testes e o `pint`,
+alguém revisa e junta na `main`. A partir daí é automático — o GitHub compila
+os arquivos do painel, e o servidor busca e publica em poucos minutos.
+
+Se a suíte falhar, nada é publicado e o site continua na versão anterior. Por
+isso teste que falha não é obstáculo burocrático: é o que separa a `main` da
+produção.
+
+O servidor também se protege: depois de publicar, ele confere se o site
+responde. Se não responder, volta sozinho para a versão anterior.
 
 ## Dúvidas
 

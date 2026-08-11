@@ -1,0 +1,52 @@
+# Prepara o que a produção vai baixar.
+#
+# O servidor da AlmaHost tem Node 10 e não consegue rodar o Vite, então os
+# arquivos compilados do painel precisam vir prontos. Em vez de sujar a main
+# com artefatos de build, este fluxo compila e publica o resultado na branch
+# "producao" — é ela que o servidor acompanha.
+#
+# Roda só depois dos testes passarem. Se a suíte quebrar, a branch "producao"
+# não se move e a produção continua na versão anterior.
+name: Preparar produção
+
+on:
+  workflow_run:
+    workflows: [Testes]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  publicar:
+    # workflow_run dispara mesmo quando o anterior falha; este if é o que
+    # transforma "os testes passaram" em pré-requisito de verdade.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Compilar os assets do painel
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publicar na branch producao
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # public/build é ignorado na main de propósito; aqui ele precisa
+          # entrar, porque é justamente o que o servidor não sabe gerar.
+          git add -f public/build
+          git commit -m "build: assets de $(git rev-parse --short HEAD)" || echo "nada novo para publicar"
+          git push --force origin HEAD:producao
