@@ -1951,6 +1951,18 @@ h3,
     padding-right: max(24px, calc((100vw - 1240px) / 2 + 24px));
 }
 
+/* Este recuo centraliza o conteudo na tela, e por isso so pode ser aplicado
+   uma vez. Aninhado — uma .section dentro de .post-page, como o "Leia
+   tambem" — ele entrava duas vezes e o conteudo encolhia conforme a janela
+   crescia: 296px de cartao a 1440, 136px a 1920, e a grade zerava a 2560. */
+.section .section,
+.page-section .section,
+.profile-page .section,
+.post-page .section {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .stats-section {
     max-width: 1240px;
     margin: -34px auto 0;
