@@ -21,7 +21,7 @@
     @endif
 
     <div class="post-content">
-        {!! nl2br(e($page->body)) !!}
+        {!! $page->rendered_body !!}
     </div>
 </article>
 @endsection

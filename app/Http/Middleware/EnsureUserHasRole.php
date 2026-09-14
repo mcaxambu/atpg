@@ -33,6 +33,11 @@ class EnsureUserHasRole
             abort(403, 'Seu acesso não está vinculado a nenhuma empresa.');
         }
 
+        // Membro sem cadastro no diretorio idem.
+        if ($user->isMember() && ! $user->member) {
+            abort(403, 'Seu acesso não está vinculado a nenhum cadastro.');
+        }
+
         return $next($request);
     }
 }

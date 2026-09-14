@@ -5,6 +5,15 @@
         ['label' => 'Visão geral', 'icon' => 'dashboard', 'route' => route('empresa.dashboard'), 'active' => request()->routeIs('empresa.dashboard')],
         ['label' => 'Dados da empresa', 'icon' => 'building', 'route' => route('empresa.perfil.edit'), 'active' => request()->routeIs('empresa.perfil.*')],
         ['label' => 'Colaboradores', 'icon' => 'users', 'route' => route('empresa.membros.index'), 'active' => request()->routeIs('empresa.membros.*')],
+        ['label' => 'Vagas', 'icon' => 'file', 'route' => route('empresa.vagas.index'), 'active' => request()->routeIs('empresa.vagas.*')],
+        // Só aparece para quem foi marcado como colunista no cadastro.
+        ...(auth()->user()?->columnist()
+            ? [['label' => 'Minhas colunas', 'icon' => 'news', 'route' => route('empresa.colunas.index'), 'active' => request()->routeIs('empresa.colunas.*')]]
+            : []),
+        // Só para a empresa delegada pela diretoria a moderar as colunas.
+        ...($company?->moderates_columns
+            ? [['label' => 'Moderar colunas', 'icon' => 'shield', 'route' => route('empresa.moderacao.index'), 'active' => request()->routeIs('empresa.moderacao.*'), 'badge' => \App\Models\Post::columns()->pending()->count()]]
+            : []),
         ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('empresa.reunioes.index'), 'active' => request()->routeIs('empresa.reunioes.*')],
         ['label' => 'Atas de reunião', 'icon' => 'file', 'route' => route('empresa.atas.index'), 'active' => request()->routeIs('empresa.atas.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('empresa.conta.edit'), 'active' => request()->routeIs('empresa.conta.*')],
@@ -103,6 +112,10 @@
                                'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200' => ! $item['active'],
                            ])>
                             <x-admin.icon :name="$item['icon']" class="h-4 w-4" />{{ $item['label'] }}
+                            {{-- Contagem só aparece quando há o que resolver. --}}
+                            @if (($item['badge'] ?? 0) > 0)
+                                <span class="ml-1 rounded-full bg-warning-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">{{ $item['badge'] }}</span>
+                            @endif
                         </a>
                     </li>
                 @endforeach
@@ -114,5 +127,6 @@
         <x-admin.flash />
         @yield('content')
     </main>
+    @stack('scripts')
 </body>
 </html>

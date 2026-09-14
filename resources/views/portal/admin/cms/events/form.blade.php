@@ -53,7 +53,7 @@
                 </label>
                 <label class="block lg:col-span-2">
                     <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</span>
-                    <textarea class="min-h-40 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" name="description" required>{{ old('description', $event->description) }}</textarea>
+                    <textarea class="min-h-40 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" name="description" data-editor required>{{ old('description', $event->description) }}</textarea>
                 </label>
                 <label class="block">
                     <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Imagem de capa</span>
@@ -73,3 +73,7 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/editor.js')
+@endpush

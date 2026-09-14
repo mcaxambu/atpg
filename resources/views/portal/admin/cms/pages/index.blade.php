@@ -34,7 +34,15 @@
                     @forelse ($pages as $page)
                         <tr>
                             <td class="px-5 py-4"><strong class="block text-sm font-semibold text-gray-800 dark:text-white/90">{{ $page->title }}</strong><span class="block max-w-xl truncate text-xs text-gray-500 dark:text-gray-400">{{ $page->excerpt_text }}</span></td>
-                            <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">/página/{{ $page->slug }}</td>
+                            <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                /página/{{ $page->slug }}
+                                {{-- Deixa visivel qual pagina alimenta cada rota fixa do site. --}}
+                                @if (\App\Support\InstitutionalPages::isInstitutional($page->slug))
+                                    <span class="mt-1 block text-xs font-semibold text-brand-600 dark:text-brand-400">
+                                        também em {{ \App\Support\InstitutionalPages::urlFor($page->slug) }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $page->show_in_menu ? 'Sim' : 'Não' }}</td>
                             <td class="px-5 py-4">
                                 @if ($page->is_published)

@@ -19,7 +19,7 @@
                     <span>{{ $event->location }}</span>
                 @endif
             </div>
-            <p>{{ $event->description }}</p>
+            <div class="rich-text">{!! $event->rendered_description !!}</div>
             @if ($event->registration_url)
                 <div class="hero-actions">
                     <a class="primary-button" href="{{ $event->registration_url }}" target="_blank" rel="noopener">Inscrever-se</a>

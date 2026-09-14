@@ -1007,7 +1007,14 @@ body {
     opacity: .8;
 }
 
-.section,
+/*
+    Antes daqui saia `animation: sectionRise` para TODAS as secoes.
+    O efeito disparava no carregamento, entao tudo que estava abaixo da dobra
+    ja tinha terminado de animar quando o visitante chegava rolando — a pagina
+    parecia estatica justamente na hora em que deveria ganhar vida.
+    A entrada agora acontece quando o bloco aparece na tela (ver motion.js).
+    Fica so a primeira dobra, que o visitante realmente ve carregar.
+*/
 .page-section,
 .profile-page,
 .post-page {
@@ -3075,10 +3082,35 @@ h3,
 /* A capa da noticia entra como fundo do cabecalho, com uma camada escura por
    cima para o texto branco continuar legivel sobre qualquer foto. Sem capa,
    fica so o gradiente da marca. */
+/*
+    O cabecalho assume a proporcao da propria foto (--post-cover-ratio, vinda
+    do PHP) e usa `contain`: assim a imagem aparece INTEIRA.
+
+    Antes era `cover` num bloco cuja altura vinha do texto — numa foto 4:3
+    dentro de um bloco quase 3:1, o recorte comia a faixa de cima e cortava as
+    cabecas das pessoas.
+
+    `contain` tambem protege os extremos: se o min/max-height entrar em acao, a
+    foto encolhe para caber em vez de ser recortada, e a cor de fundo preenche
+    a sobra.
+*/
+/*
+    Cabecalho compacto, ancorado no TOPO da foto.
+
+    `center top` em vez de `center`: numa foto de pessoas o que interessa esta
+    na metade de cima, e o recorte centralizado cortava justamente as cabecas.
+    Ancorando no topo, o que sai e a parte de baixo — que costuma ser chao,
+    mesa ou fundo.
+
+    min-height (e nao aspect-ratio): a altura cresce quando o titulo e longo,
+    em vez de o texto transbordar para fora do bloco.
+*/
 .post-hero.has-cover {
+    min-height: clamp(260px, 26vw, 400px);
     background:
         linear-gradient(120deg, rgba(11, 23, 39, .92), rgba(15, 76, 129, .78)),
-        var(--post-cover) center/cover;
+        var(--post-cover) center top / cover no-repeat,
+        var(--navy);
 }
 
 .post-hero h1 {
@@ -3222,4 +3254,837 @@ h3,
 .post-content th {
     background: #eef3f8;
     font-weight: 900;
+}
+
+/* =========================================================
+   Vagas
+   ========================================================= */
+
+.job-filters {
+    grid-template-columns: 1.6fr 1fr 1fr auto auto;
+}
+
+.job-list {
+    display: grid;
+    gap: 16px;
+}
+
+.job-card {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    align-items: start;
+    gap: 18px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.job-card-body h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+}
+
+.job-card-body h2 a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.job-card-body h2 a:hover {
+    color: var(--brand);
+}
+
+.job-company-name {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-weight: 900;
+    font-size: .9rem;
+}
+
+.job-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.job-excerpt {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.job-card-meta {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+    text-align: right;
+}
+
+.job-salary {
+    color: var(--brand);
+    font-size: 1rem;
+}
+
+.job-deadline {
+    color: var(--muted);
+    font-size: .82rem;
+}
+
+/* ----- Detalhe da vaga ----- */
+
+.job-detail {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+    gap: 24px;
+}
+
+.job-block {
+    padding: 24px;
+    margin-bottom: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.job-block h2 {
+    margin: 0 0 14px;
+    font-size: 1.2rem;
+}
+
+/* Preserva as quebras de linha digitadas pela empresa. */
+/* Sem white-space: pre-line — o conteudo agora vem do editor como HTML
+   renderizado, e o pre-line dobraria cada quebra de paragrafo. */
+.job-text {
+    margin: 0;
+    line-height: 1.7;
+}
+
+.job-bullets {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+.job-detail-side {
+    position: sticky;
+    top: 92px;
+}
+
+.job-summary {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.job-summary h2 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+}
+
+.job-summary dl {
+    margin: 0 0 18px;
+}
+
+.job-summary dt {
+    color: var(--muted);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 900;
+}
+
+.job-summary dd {
+    margin: 2px 0 12px;
+    font-weight: 700;
+}
+
+.job-summary .primary-button {
+    width: 100%;
+    text-align: center;
+}
+
+.job-note {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.6;
+}
+
+.job-back {
+    margin-top: 22px;
+}
+
+/* ----- Candidatura ----- */
+
+.job-consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 10px;
+    line-height: 1.55;
+}
+
+.job-consent input {
+    width: auto;
+    min-height: 0;
+    margin-top: 3px;
+}
+
+.job-success {
+    padding: 24px;
+    margin-bottom: 22px;
+    border: 1px solid rgba(16, 185, 129, .35);
+    border-radius: 8px;
+    background: rgba(16, 185, 129, .08);
+}
+
+.job-success h2 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+}
+
+/*
+    Breakpoints das vagas ficam AQUI, e nao junto das listas de
+    .company-card / .filters-form la em cima: as regras base desta secao estao
+    no fim do arquivo e venceriam aquelas media queries por ordem de cascata.
+    Os limites (980 e 680) sao os mesmos do resto do site.
+*/
+@media (max-width: 980px) {
+    .job-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .job-detail-side {
+        position: static;
+    }
+
+    /* Sem a coluna de acao: o rodape do card passa a ocupar a linha toda. */
+    .job-card {
+        grid-template-columns: 72px 1fr;
+    }
+
+    .job-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .job-card-meta {
+        grid-column: 1 / -1;
+        justify-items: start;
+        text-align: left;
+    }
+}
+
+@media (max-width: 680px) {
+    .job-card {
+        grid-template-columns: 1fr;
+    }
+
+    .job-filters {
+        grid-template-columns: 1fr;
+    }
+
+    /* Empilhado, o logo grande rouba a altura da dobra. */
+    .job-card .company-logo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .job-card-meta .primary-button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Estado vazio das vagas: bloco simples, sem o grid de 3 colunas do .job-card. */
+.job-empty {
+    padding: 40px 24px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.job-empty h2 {
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+}
+
+.job-empty p {
+    max-width: 52ch;
+    margin: 0 auto 18px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* =========================================================
+   Conteudo vindo do editor do painel
+
+   O painel grava Markdown; estas regras dao forma ao HTML gerado. Sao a
+   tipografia do .post-content, sem a moldura de cartao dele — aqui o container
+   ao redor (content-card, job-block) ja e o cartao.
+   ========================================================= */
+
+.rich-text > *:first-child { margin-top: 0; }
+.rich-text > *:last-child { margin-bottom: 0; }
+
+.rich-text p {
+    margin: 0 0 1em;
+    line-height: 1.75;
+}
+
+.rich-text h2,
+.rich-text h3,
+.rich-text h4 {
+    margin: 1.6em 0 .6em;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+.rich-text h2 { font-size: 1.4rem; }
+.rich-text h3 { font-size: 1.2rem; }
+.rich-text h4 { font-size: 1.05rem; }
+
+.rich-text ul,
+.rich-text ol {
+    margin: 0 0 1em;
+    padding-left: 22px;
+}
+
+.rich-text li {
+    margin-bottom: .4em;
+    line-height: 1.7;
+}
+
+.rich-text li::marker { color: var(--brand); }
+
+.rich-text a {
+    color: var(--brand);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.rich-text strong { font-weight: 900; }
+
+.rich-text blockquote {
+    margin: 1.2em 0;
+    padding: 2px 0 2px 16px;
+    border-left: 3px solid var(--brand);
+    color: var(--muted);
+}
+
+.rich-text code {
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #eef3f8;
+    font-size: .92em;
+}
+
+.rich-text pre {
+    margin: 1.2em 0;
+    padding: 14px 16px;
+    overflow-x: auto;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.rich-text pre code {
+    padding: 0;
+    background: none;
+    color: inherit;
+}
+
+.rich-text hr {
+    margin: 1.6em 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
+
+/* Tabela larga rola dentro do proprio bloco; a pagina nunca rola na horizontal. */
+.rich-text table {
+    display: block;
+    max-width: 100%;
+    margin: 1.4em 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+
+.rich-text th,
+.rich-text td {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    text-align: left;
+}
+
+.rich-text th {
+    background: #eef3f8;
+    font-weight: 900;
+}
+
+.rich-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* =========================================================
+   Missao, visao e valores (pagina Sobre)
+
+   Os breakpoints ficam nesta secao, e nao nas listas la de cima: as regras
+   base estao no fim do arquivo e venceriam aquelas media queries por cascata.
+   ========================================================= */
+
+.purpose-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin: 28px 0;
+}
+
+.purpose-card {
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(15, 76, 129, .06), rgba(14, 165, 168, .08)),
+        white;
+    box-shadow: var(--shadow);
+}
+
+.purpose-card h2 {
+    margin: 6px 0 12px;
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+}
+
+.purpose-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.value-card {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.value-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 55px rgba(0, 71, 160, .16);
+}
+
+/* Barrinha da marca no topo do card, para os valores nao virarem um bloco
+   uniforme de texto. */
+.value-card h3 {
+    position: relative;
+    margin: 0 0 10px;
+    padding-top: 12px;
+    font-size: 1.05rem;
+}
+
+.value-card h3::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 34px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--brand), var(--brand-3));
+}
+
+.value-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .95rem;
+    line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+    .values-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 680px) {
+    .purpose-grid,
+    .values-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Credito da fonte, no fim da noticia. */
+.post-source {
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.post-source a {
+    color: var(--brand);
+    font-weight: 700;
+}
+
+/* =========================================================
+   Entrada por rolagem
+
+   O estado inicial so existe quando o motion.js confirma suporte e marca
+   .com-movimento na raiz. Sem JS (ou com IntersectionObserver ausente) nada
+   disso se aplica e o conteudo aparece normal — nunca fica escondido.
+   ========================================================= */
+
+.com-movimento [data-revelar] {
+    opacity: 0;
+    transform: translateY(22px);
+}
+
+.com-movimento [data-revelar].revelado {
+    opacity: 1;
+    transform: none;
+    /* --atraso escalona os itens de uma grade, definido pelo motion.js. */
+    transition:
+        opacity .62s cubic-bezier(.2, .8, .2, 1) var(--atraso, 0ms),
+        transform .62s cubic-bezier(.2, .8, .2, 1) var(--atraso, 0ms);
+}
+
+/*
+    Cartao entra com um pouco mais de presenca que uma secao inteira: sobe de
+    mais longe e cresce dos 96%. Numa grade, com o escalonamento do motion.js,
+    isso e o que da a leitura de "os cards estao entrando" em vez de "a pagina
+    apareceu".
+*/
+.com-movimento [data-revelar]:is(
+    .value-card,
+    .purpose-card,
+    .job-card,
+    .company-card,
+    .member-card,
+    .post-card,
+    .feature-grid > article,
+    .stat-card
+) {
+    transform: translateY(34px) scale(.96);
+}
+
+.com-movimento [data-revelar]:is(
+    .value-card,
+    .purpose-card,
+    .job-card,
+    .company-card,
+    .member-card,
+    .post-card,
+    .feature-grid > article,
+    .stat-card
+).revelado {
+    transform: none;
+    transition:
+        opacity .55s cubic-bezier(.2, .9, .3, 1) var(--atraso, 0ms),
+        transform .55s cubic-bezier(.2, .9, .3, 1) var(--atraso, 0ms);
+}
+
+/* ---------- Acabamento de interacao ---------- */
+
+/* O cartao de noticia nao tinha resposta ao passar o mouse, enquanto empresa
+   e vaga tinham: a listagem parecia morta ao lado das outras. */
+.post-card {
+    transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 55px rgba(0, 71, 160, .16);
+}
+
+.post-card .post-cover img {
+    transition: transform .5s cubic-bezier(.2, .8, .2, 1);
+}
+
+.post-card:hover .post-cover img {
+    transform: scale(1.05);
+}
+
+/* Zoom so acontece se a capa recortar o excedente. */
+.post-card .post-cover {
+    overflow: hidden;
+}
+
+/* Sublinhado que cresce do inicio do link, em vez de aparecer inteiro. */
+.nav a:not(.login-link) {
+    position: relative;
+}
+
+.nav a:not(.login-link)::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 6px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--brand);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+}
+
+.nav a:not(.login-link):hover::after {
+    transform: scaleX(1);
+}
+
+.primary-button,
+.secondary-button {
+    transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0, 71, 160, .28);
+}
+
+.secondary-button:hover {
+    transform: translateY(-2px);
+}
+
+/* Etiqueta de segmento/especialidade reage ao passar o mouse. */
+.segment {
+    transition: transform .18s ease, background-color .18s ease;
+}
+
+.segment:hover {
+    transform: translateY(-1px);
+}
+
+/*
+    O bloco geral de prefers-reduced-motion ja existe mais acima e zera
+    animacoes e transicoes. Aqui fica so o que ele nao alcanca: o estado
+    inicial da entrada por rolagem, que e opacidade — sem isto, quem pediu
+    menos movimento veria o conteudo invisivel ate o JS revelar.
+
+    (O motion.js tambem desiste sozinho nesse caso; esta regra e a garantia
+    para o intervalo entre o CSS carregar e o script rodar.)
+*/
+@media (prefers-reduced-motion: reduce) {
+    .com-movimento [data-revelar],
+    .com-movimento [data-revelar].revelado {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* =========================================================
+   Colunas e colunistas
+   ========================================================= */
+
+.columnist-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.columnist-card {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.columnist-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 55px rgba(0, 71, 160, .16);
+}
+
+.columnist-avatar,
+.columnist-hero-avatar,
+.column-author-avatar {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-3));
+    color: white;
+    font-weight: 900;
+}
+
+.columnist-avatar { width: 84px; height: 84px; font-size: 1.4rem; }
+.columnist-hero-avatar { width: 132px; height: 132px; font-size: 2.2rem; }
+.column-author-avatar { width: 72px; height: 72px; font-size: 1.2rem; }
+
+.columnist-avatar img,
+.columnist-hero-avatar img,
+.column-author-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.columnist-body h3 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+}
+
+.columnist-body h3 a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.columnist-body h3 a:hover { color: var(--brand); }
+
+.columnist-body p {
+    margin: 10px 0 8px;
+    color: var(--muted);
+    font-size: .92rem;
+    line-height: 1.6;
+}
+
+.columnist-count {
+    color: var(--brand);
+    font-size: .82rem;
+    font-weight: 900;
+}
+
+/* ----- Página do colunista ----- */
+
+.columnist-hero {
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    align-items: start;
+    gap: 24px;
+    padding: 28px;
+    margin-bottom: 28px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(15, 76, 129, .06), rgba(14, 165, 168, .08)),
+        white;
+    box-shadow: var(--shadow);
+}
+
+.columnist-hero h1 {
+    margin: 6px 0 4px;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.columnist-role {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.columnist-bio { color: var(--muted); }
+
+/* ----- Selo e assinatura ----- */
+
+.post-column-tag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: white;
+    font-weight: 900;
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.post-byline {
+    margin: -4px 0 8px;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.post-hero-byline {
+    margin: 8px 0 0;
+    font-size: 1.05rem;
+}
+
+.post-hero-byline a {
+    color: #e0f2fe;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ----- Caixa do autor no fim da coluna ----- */
+
+.column-author {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 18px;
+    margin-top: 2.5em;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f8fbfd;
+}
+
+.column-author h3 {
+    margin: 4px 0 8px;
+    font-size: 1.1rem;
+}
+
+.column-author h3 a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.column-author h3 a:hover { color: var(--brand); }
+
+.column-author p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.column-disclaimer {
+    margin-top: 12px !important;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: .82rem !important;
+    font-style: italic;
+}
+
+@media (max-width: 980px) {
+    .columnist-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+    .columnist-grid { grid-template-columns: 1fr; }
+
+    .columnist-hero,
+    .columnist-card,
+    .column-author {
+        grid-template-columns: 1fr;
+    }
+
+    .columnist-hero-avatar,
+    .columnist-avatar,
+    .column-author-avatar {
+        width: 84px;
+        height: 84px;
+        font-size: 1.4rem;
+    }
 }

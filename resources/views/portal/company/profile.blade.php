@@ -29,7 +29,7 @@
 
                     <x-admin.field label="Descrição" name="description" class="sm:col-span-2"
                                    hint="Conte o que a empresa faz, para quem e o que a diferencia.">
-                        <textarea name="description" rows="6" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>
+                        <textarea name="description" data-editor rows="6" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>
                     </x-admin.field>
                 </div>
             </x-admin.card>
@@ -112,3 +112,7 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/editor.js')
+@endpush

@@ -5,16 +5,26 @@
 
 @section('content')
 @php
-    $cards = [
-        ['label' => 'Membros', 'value' => $stats['members'], 'hint' => $stats['membersPublished'].' publicados', 'icon' => 'users', 'route' => route('admin.members.index')],
-        ['label' => 'Empresas', 'value' => $stats['companies'], 'hint' => $stats['companiesPublished'].' publicadas', 'icon' => 'building', 'route' => route('admin.companies.index')],
-        ['label' => 'Especialidades', 'value' => $stats['specialties'], 'hint' => 'áreas de atuação', 'icon' => 'tag', 'route' => route('admin.specialties.index')],
-        ['label' => 'Notícias', 'value' => $stats['posts'], 'hint' => $stats['postsPublished'].' publicadas', 'icon' => 'news', 'route' => route('admin.cms.posts.index')],
-        ['label' => 'Eventos', 'value' => $stats['events'], 'hint' => $stats['eventsUpcoming'].' próximos', 'icon' => 'calendar', 'route' => route('admin.cms.events.index')],
-        ['label' => 'Páginas', 'value' => $stats['pages'], 'hint' => 'no CMS', 'icon' => 'file', 'route' => route('admin.cms.pages.index')],
-    ];
+    // O dashboard so mostra o que o usuario consegue abrir: card que leva a 403
+    // e pior do que card ausente.
+    $can = fn (string $module) => auth()->user()?->canAccessModule($module);
 
-    $totalPending = $stats['companiesPending'] + $stats['membersPending'];
+    $cards = collect([
+        ['module' => 'members', 'label' => 'Membros', 'value' => $stats['members'], 'hint' => $stats['membersPublished'].' publicados', 'icon' => 'users', 'route' => route('admin.members.index')],
+        ['module' => 'companies', 'label' => 'Empresas', 'value' => $stats['companies'], 'hint' => $stats['companiesPublished'].' publicadas', 'icon' => 'building', 'route' => route('admin.companies.index')],
+        ['module' => 'specialties', 'label' => 'Especialidades', 'value' => $stats['specialties'], 'hint' => 'áreas de atuação', 'icon' => 'tag', 'route' => route('admin.specialties.index')],
+        ['module' => 'cms', 'label' => 'Notícias', 'value' => $stats['posts'], 'hint' => $stats['postsPublished'].' publicadas', 'icon' => 'news', 'route' => route('admin.cms.posts.index')],
+        ['module' => 'cms', 'label' => 'Eventos', 'value' => $stats['events'], 'hint' => $stats['eventsUpcoming'].' próximos', 'icon' => 'calendar', 'route' => route('admin.cms.events.index')],
+        ['module' => 'cms', 'label' => 'Páginas', 'value' => $stats['pages'], 'hint' => 'no CMS', 'icon' => 'file', 'route' => route('admin.cms.pages.index')],
+    ])->filter(fn ($card) => $can($card['module']))->values()->all();
+
+    $canCompanies = $can('companies');
+    $canMembers = $can('members');
+    $canCms = $can('cms');
+
+    // Contagem pendente idem: so conta o que ele pode resolver.
+    $totalPending = ($canCompanies ? $stats['companiesPending'] : 0)
+        + ($canMembers ? $stats['membersPending'] : 0);
 @endphp
 
 <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -30,19 +40,25 @@
         </p>
     </div>
     <div class="flex flex-wrap gap-2">
-        <x-admin.button :href="route('admin.members.create')" icon="plus">Novo membro</x-admin.button>
-        <x-admin.button :href="route('admin.cms.posts.create')" icon="news">Publicar notícia</x-admin.button>
-        <x-admin.button :href="route('admin.companies.create')" variant="primary" icon="plus">Nova empresa</x-admin.button>
+        @if ($canMembers)
+            <x-admin.button :href="route('admin.members.create')" icon="plus">Novo membro</x-admin.button>
+        @endif
+        @if ($canCms)
+            <x-admin.button :href="route('admin.cms.posts.create')" icon="news">Publicar notícia</x-admin.button>
+        @endif
+        @if ($canCompanies)
+            <x-admin.button :href="route('admin.companies.create')" variant="primary" icon="plus">Nova empresa</x-admin.button>
+        @endif
     </div>
 </div>
 
 {{-- Filas de aprovação primeiro: o que exige ação vem antes das métricas. --}}
 @if ($totalPending > 0)
     <div class="grid gap-4 sm:grid-cols-2">
-        @foreach ([
-            ['Empresas pendentes', $stats['companiesPending'], route('admin.companies.pending'), 'building'],
-            ['Membros pendentes', $stats['membersPending'], route('admin.members.pending'), 'users'],
-        ] as [$label, $count, $url, $icon])
+        @foreach (array_filter([
+            $canCompanies ? ['Empresas pendentes', $stats['companiesPending'], route('admin.companies.pending'), 'building'] : null,
+            $canMembers ? ['Membros pendentes', $stats['membersPending'], route('admin.members.pending'), 'users'] : null,
+        ]) as [$label, $count, $url, $icon])
             @if ($count > 0)
                 <a href="{{ $url }}" class="flex items-center gap-4 rounded-2xl border border-warning-200 bg-warning-50 p-5 transition hover:-translate-y-0.5 hover:shadow-theme-md dark:border-warning-500/25 dark:bg-warning-500/10">
                     <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-warning-500 text-white">
@@ -72,6 +88,7 @@
 </div>
 
 <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+    @if ($canCompanies)
     <x-admin.card title="Empresas aguardando análise" subtitle="Cadastros recebidos pelo formulário público." :padding="false">
         <x-slot:actions>
             <x-admin.button :href="route('admin.companies.pending')" variant="ghost">Ver fila</x-admin.button>
@@ -102,7 +119,9 @@
             @endforelse
         </div>
     </x-admin.card>
+    @endif
 
+    @if ($canMembers)
     <x-admin.card title="Membros aguardando análise" subtitle="Profissionais que se cadastraram pelo portal." :padding="false">
         <x-slot:actions>
             <x-admin.button :href="route('admin.members.pending')" variant="ghost">Ver fila</x-admin.button>
@@ -133,9 +152,11 @@
             @endforelse
         </div>
     </x-admin.card>
+    @endif
 </div>
 
 <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    @if ($canMembers)
     <x-admin.card class="xl:col-span-2" title="Membros cadastrados recentemente" :padding="false">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
@@ -172,7 +193,9 @@
             </table>
         </div>
     </x-admin.card>
+    @endif
 
+    @if ($canCms)
     <x-admin.card title="Próximos eventos" :padding="false">
         <x-slot:actions>
             <x-admin.button :href="route('admin.cms.events.create')" variant="ghost" icon="plus">Novo</x-admin.button>
@@ -202,5 +225,6 @@
             @endforelse
         </div>
     </x-admin.card>
+    @endif
 </div>
 @endsection

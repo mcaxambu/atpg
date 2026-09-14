@@ -99,8 +99,10 @@
                 <a href="{{ route('companies.index') }}">Empresas</a>
                 <a href="{{ route('join') }}">Associe-se</a>
                 <a href="{{ route('projects') }}">Projetos</a>
+                <a href="{{ route('vagas.index') }}">Vagas</a>
                 <a href="{{ route('events') }}">Eventos</a>
                 <a href="{{ route('posts.index') }}">Notícias</a>
+                <a href="{{ route('colunas.index') }}">Colunas</a>
                 <a href="{{ route('benefits') }}">Benefícios</a>
                 @isset($menuPages)
                     @foreach ($menuPages as $menuPage)
@@ -138,8 +140,10 @@
                 <a href="{{ route('companies.index') }}">Empresas</a>
                 <a href="{{ route('join') }}">Associe-se</a>
                 <a href="{{ route('projects') }}">Projetos</a>
+                <a href="{{ route('vagas.index') }}">Vagas</a>
                 <a href="{{ route('events') }}">Eventos</a>
                 <a href="{{ route('posts.index') }}">Notícias</a>
+                <a href="{{ route('colunas.index') }}">Colunas</a>
                 <a href="{{ route('governance') }}">Governança</a>
                 <a href="{{ route('companies.register.create') }}">Cadastro</a>
                 <a href="{{ route('entrar') }}">Painel</a>
@@ -254,5 +258,8 @@
             decline.addEventListener('click', () => decide('declined'));
         })();
     </script>
+
+    {{-- defer: a entrada por rolagem nao pode atrasar a primeira pintura. --}}
+    <script src="{{ asset('js/motion.js') }}?v={{ @filemtime(public_path('js/motion.js')) ?: time() }}" defer></script>
 </body>
 </html>

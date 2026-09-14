@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 class MeetingMinute extends Model
 {
     use HasFactory;
+    use RendersMarkdown;
     use SoftDeletes;
 
     /** Disco privado: o PDF nunca fica alcancavel por URL direta. */
@@ -86,10 +88,13 @@ class MeetingMinute extends Model
             return '';
         }
 
-        return Str::markdown($this->body, [
+        // Opcoes proprias de proposito: a ata NAO usa soft_break como <br>, e
+        // trocar isso mudaria a diagramacao das atas ja publicadas. Só o
+        // tratamento de link externo e compartilhado.
+        return $this->abrirLinksExternosEmNovaAba(Str::markdown($this->body, [
             'html_input' => 'escape',
             'allow_unsafe_links' => false,
-        ]);
+        ]));
     }
 
     /**

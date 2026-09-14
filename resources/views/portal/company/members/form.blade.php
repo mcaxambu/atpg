@@ -49,7 +49,7 @@
                     </x-admin.field>
 
                     <x-admin.field label="Resumo profissional" name="summary" class="sm:col-span-2">
-                        <textarea name="summary" rows="5" class="{{ $input }}">{{ old('summary', $member->summary) }}</textarea>
+                        <textarea name="summary" data-editor rows="5" class="{{ $input }}">{{ old('summary', $member->summary) }}</textarea>
                     </x-admin.field>
                 </div>
             </x-admin.card>
@@ -131,3 +131,7 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/editor.js')
+@endpush

@@ -7,6 +7,7 @@ use App\Actions\ProvisionCompanyAccess;
 use App\Enums\ModerationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CompanyRequest;
+use App\Actions\SyncColumnistProfile;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -73,6 +74,7 @@ class CompanyController extends Controller
         }
 
         $company = Company::create($data);
+        $this->sincronizarColunista($company, $request);
 
         return redirect()
             ->route('admin.companies.index')
@@ -141,6 +143,7 @@ class CompanyController extends Controller
         }
 
         $company->update($data);
+        $this->sincronizarColunista($company, $request);
 
         return redirect()
             ->route('admin.companies.index')
@@ -205,6 +208,19 @@ class CompanyController extends Controller
         $this->moderation->reject($company, $validated['rejection_reason'], $request->user());
 
         return back()->with('status', "Empresa \"{$company->name}\" rejeitada. O responsável foi avisado por e-mail.");
+    }
+
+    /**
+     * A caixa "e colunista" do formulario liga ou desliga o perfil publico de
+     * coluna desta empresa.
+     */
+    private function sincronizarColunista(Company $company, Request $request): void
+    {
+        app(SyncColumnistProfile::class)(
+            $company,
+            $request->boolean('is_columnist'),
+            $request->input('columnist_name')
+        );
     }
 
     private function deleteLogo(Company $company): void

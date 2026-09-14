@@ -36,7 +36,7 @@
         <div class="profile-main">
             <section class="content-card">
                 <h2>Sobre a empresa</h2>
-                <p>{{ $company->description }}</p>
+                <div class="rich-text">{!! $company->rendered_description !!}</div>
             </section>
 
             <section class="content-card">

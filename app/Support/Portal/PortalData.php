@@ -86,8 +86,8 @@ class PortalData
                 ->get(),
 
             'latestPosts' => Post::query()
-                ->published()
-                ->latest('published_at')
+                ->visibleToPublic()
+                ->inFeedOrder()
                 ->limit(3)
                 ->get(),
 

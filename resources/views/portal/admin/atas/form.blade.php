@@ -42,7 +42,7 @@
 
         <x-admin.field label="Ou escreva aqui" name="body" class="mt-4"
                        hint="Markdown: # título, ## subtítulo, - lista, **negrito**, [link](url), | tabelas |">
-            <textarea name="body" rows="16"
+            <textarea name="body" data-editor rows="16"
                       class="{{ $input }} font-mono text-xs leading-relaxed"
                       placeholder="# Assembleia Geral Ordinária&#10;&#10;**Data:** 04/08/2026&#10;**Local:** Sede da associação&#10;&#10;## Pauta&#10;&#10;1. Prestação de contas&#10;2. Eleição da diretoria&#10;&#10;## Deliberações&#10;&#10;- Contas aprovadas por unanimidade">{{ old('body', $ata->body) }}</textarea>
         </x-admin.field>
@@ -99,3 +99,7 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/editor.js')
+@endpush

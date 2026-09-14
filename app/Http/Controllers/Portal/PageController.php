@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Models\CmsItem;
 use App\Models\CmsPage;
 use App\Support\Portal\PortalData;
 
@@ -10,7 +11,12 @@ class PageController extends Controller
 {
     public function about(PortalData $portalData)
     {
-        return view('portal.about', $this->withCmsPage($portalData, 'sobre'));
+        // Carregados so aqui, e nao no PortalData: sao usados nesta pagina, e
+        // nao ha por que consultar o banco em toda pagina do portal.
+        return view('portal.about', $this->withCmsPage($portalData, 'sobre') + [
+            'purposeItems' => $this->moduleItems('missao-visao'),
+            'valueItems' => $this->moduleItems('valores'),
+        ]);
     }
 
     public function benefits(PortalData $portalData)
@@ -127,6 +133,22 @@ class PageController extends Controller
         abort_unless($page->is_published, 404);
 
         return view('portal.cms-page', $portalData->merge(['page' => $page]));
+    }
+
+    /**
+     * Itens ativos de um modulo do CMS, na ordem definida no painel.
+     */
+    private function moduleItems(string $module)
+    {
+        return CmsItem::query()
+            ->module($module)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('published_at')->orWhere('published_at', '<=', now());
+            })
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
     }
 
     private function withCmsPage(PortalData $portalData, string $slug): array

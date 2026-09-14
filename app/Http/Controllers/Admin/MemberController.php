@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\ModerateRegistration;
+use App\Actions\SyncColumnistProfile;
 use App\Enums\ModerationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MemberRequest;
@@ -79,10 +80,24 @@ class MemberController extends Controller
         $member = Member::create($data);
         $member->specialties()->sync($request->input('specialties', []));
         $this->syncDetails($member, $request);
+        $this->sincronizarColunista($member, $request);
 
         return redirect()
             ->route('admin.members.index')
             ->with('status', "Membro \"{$member->name}\" cadastrado com sucesso.");
+    }
+
+    /**
+     * A caixa "e colunista" do formulario liga ou desliga o perfil publico de
+     * coluna deste membro.
+     */
+    private function sincronizarColunista(Member $member, Request $request): void
+    {
+        app(SyncColumnistProfile::class)(
+            $member,
+            $request->boolean('is_columnist'),
+            $request->input('columnist_name')
+        );
     }
 
     public function show(Member $member)
@@ -116,6 +131,7 @@ class MemberController extends Controller
         $member->update($data);
         $member->specialties()->sync($request->input('specialties', []));
         $this->syncDetails($member, $request);
+        $this->sincronizarColunista($member, $request);
 
         return redirect()
             ->route('admin.members.index')

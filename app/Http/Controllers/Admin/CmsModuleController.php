@@ -18,6 +18,8 @@ class CmsModuleController extends Controller
             'destaques' => ['title' => 'Destaques', 'singular' => 'Destaque', 'description' => 'Conteudos, empresas, eventos e links priorizados no portal.'],
             'depoimentos' => ['title' => 'Depoimentos', 'singular' => 'Depoimento', 'description' => 'Falas de associados, empresas, parceiros e liderancas do ecossistema.'],
             'projetos' => ['title' => 'Projetos', 'singular' => 'Projeto', 'description' => 'Projetos institucionais, iniciativas coletivas e frentes de trabalho.'],
+            'missao-visao' => ['title' => 'Missão e visão', 'singular' => 'Bloco', 'description' => 'Os dois blocos de propósito exibidos na página Sobre. Use o título "Missão" e "Visão".'],
+            'valores' => ['title' => 'Valores', 'singular' => 'Valor', 'description' => 'Cards de valores da associação, exibidos na página Sobre.'],
             'parceiros' => ['title' => 'Parceiros', 'singular' => 'Parceiro', 'description' => 'Apoiadores, entidades parceiras, patrocinadores e conexoes institucionais.'],
         ];
     }

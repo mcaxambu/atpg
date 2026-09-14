@@ -13,7 +13,7 @@
         <figure class="page-feature-image"><img src="{{ asset('storage/' . $cmsPage->hero_image) }}" alt="{{ $cmsPage->title }}"></figure>
     @endif
     @if ($cmsPage?->body)
-        <article class="content-card institutional-content">{!! nl2br(e($cmsPage->body)) !!}</article>
+        <article class="content-card institutional-content rich-text">{!! $cmsPage->rendered_body !!}</article>
     @endif
 
     <div class="benefit-grid">

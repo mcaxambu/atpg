@@ -17,7 +17,7 @@
                 <div class="event-body">
                     <span class="segment">{{ $event->type }}</span>
                     <h3>{{ $event->title }}</h3>
-                    <p>{{ $event->description }}</p>
+                    <p>{{ $event->description_excerpt }}</p>
                     <a href="{{ route('events.show', $event) }}">Ver detalhes</a>
                 </div>
             </article>

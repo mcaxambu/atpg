@@ -39,7 +39,22 @@
                         </strong>
                         <span class="block truncate text-xs text-gray-500 dark:text-gray-400">
                             {{ $user->email }}@if ($user->company) &middot; {{ $user->company->name }} @endif
+                            @if ($user->member) &middot; {{ $user->member->name }} @endif
                         </span>
+
+                        {{-- Para a diretoria, o que importa é o alcance dentro do painel. --}}
+                        @if ($user->isAdmin())
+                            <span class="mt-1 block text-xs">
+                                @if ($user->hasFullAccess())
+                                    <span class="text-success-600 dark:text-success-500">Acesso total</span>
+                                @else
+                                    <span class="text-gray-500 dark:text-gray-400">
+                                        Módulos:
+                                        {{ collect($user->allowedModules())->map(fn ($m) => $m->label())->join(', ') }}
+                                    </span>
+                                @endif
+                            </span>
+                        @endif
                     </div>
                 </div>
                 <div class="flex shrink-0 gap-2">

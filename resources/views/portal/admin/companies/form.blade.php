@@ -39,7 +39,7 @@
                     </x-admin.field>
 
                     <x-admin.field label="Descrição" name="description" class="sm:col-span-2">
-                        <textarea name="description" rows="5" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>
+                        <textarea name="description" data-editor rows="5" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>
                     </x-admin.field>
                 </div>
             </x-admin.card>
@@ -126,6 +126,44 @@
                 </div>
             </x-admin.card>
 
+            <x-admin.card title="Coluna">
+                @include('portal.admin.partials.columnist-fields', [
+                    'columnist' => $company->columnist,
+                    'tipo' => 'empresa',
+                ])
+
+                {{--
+                    Delegacao da moderacao. Fica separada da marcacao de
+                    colunista de proposito: uma coisa e a empresa ESCREVER
+                    coluna, outra e ela DECIDIR o que o portal publica.
+                --}}
+                <div class="mt-5 border-t border-gray-100 pt-5 dark:border-gray-800">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors"
+                           x-data="{ modera: {{ old('moderates_columns', $company->moderates_columns) ? 'true' : 'false' }} }"
+                           :class="modera
+                               ? 'border-warning-500/40 bg-warning-50 dark:border-warning-500/40 dark:bg-warning-500/10'
+                               : 'border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.03]'">
+                        <input type="checkbox" name="moderates_columns" value="1" x-model="modera"
+                               class="mt-0.5 h-4 w-4 rounded border-gray-300 text-warning-600 focus:ring-warning-500">
+                        <span>
+                            <span class="block text-sm font-medium text-gray-800 dark:text-white">
+                                Responsável pela moderação das colunas
+                            </span>
+                            <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+                                No painel desta empresa aparece a fila de colunas pendentes, e ela passa a
+                                aprovar ou devolver os textos no lugar da diretoria.
+                            </span>
+                            <span x-show="modera" x-cloak
+                                  class="mt-2 block rounded-lg bg-warning-100 px-3 py-2 text-xs text-warning-800 dark:bg-warning-500/15 dark:text-warning-300">
+                                <strong>Atenção ao alcance:</strong> o painel da empresa mostra apenas os dados dela.
+                                Esta marcação abre uma exceção — ela passa a decidir o que o portal inteiro publica
+                                na seção de colunas, inclusive textos de outros associados.
+                            </span>
+                        </span>
+                    </label>
+                </div>
+            </x-admin.card>
+
             <x-admin.card title="Logo">
                 @if ($company->logo_path)
                     <img src="{{ asset('storage/'.$company->logo_path) }}" alt="Logo atual"
@@ -148,3 +186,7 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/editor.js')
+@endpush

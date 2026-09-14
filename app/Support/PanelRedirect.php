@@ -14,6 +14,8 @@ class PanelRedirect
     {
         return match (true) {
             $user?->isCompany() => route('empresa.dashboard'),
+            $user?->isMember() => route('membro.perfil.edit'),
+            // Admin restrito a modulos: o dashboard continua liberado para todos.
             default => route('admin.dashboard'),
         };
     }

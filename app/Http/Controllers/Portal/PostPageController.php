@@ -11,14 +11,17 @@ class PostPageController extends Controller
     public function index(PortalData $portalData)
     {
         $posts = Post::query()
-            ->published()
-            ->latest('published_at')
+            ->visibleToPublic()
+            ->inFeedOrder()
             ->paginate(9);
 
         /*
-         * A mais recente vira destaque, mas so na primeira pagina: "destaque"
-         * na pagina 3 nao quer dizer nada, e o leitor que ja esta paginando
-         * quer varrer titulos, nao um banner por pagina.
+         * O primeiro da lista vira o cartao de destaque, mas so na primeira
+         * pagina: "destaque" na pagina 3 nao quer dizer nada, e o leitor que ja
+         * esta paginando quer varrer titulos, nao um banner por pagina.
+         *
+         * Com `inFeedOrder`, esse primeiro e a materia marcada como destaque
+         * no painel; sem nenhuma marcada, continua sendo a mais recente.
          */
         $featured = $posts->onFirstPage() ? $posts->getCollection()->first() : null;
 
@@ -33,12 +36,12 @@ class PostPageController extends Controller
 
     public function show(Post $post, PortalData $portalData)
     {
-        abort_unless($post->is_published && $post->published_at && $post->published_at->lte(now()), 404);
+        abort_unless($post->isVisibleToPublic(), 404);
 
         return view('portal.posts.show', $portalData->merge([
             'post' => $post,
             'relatedPosts' => Post::query()
-                ->published()
+                ->visibleToPublic()
                 ->whereKeyNot($post->id)
                 ->latest('published_at')
                 ->limit(3)

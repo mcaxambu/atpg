@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ModerationStatus;
 use App\Models\Concerns\HasUniqueSlug;
 use App\Models\Concerns\Moderatable;
+use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Company extends Model
     use HasFactory;
     use HasUniqueSlug;
     use Moderatable;
+    use RendersMarkdown;
     use SoftDeletes;
 
     protected $fillable = [
@@ -39,6 +41,7 @@ class Company extends Model
         'whatsapp',
         'site_url',
         'is_active',
+        'moderates_columns',
         'status',
         'rejection_reason',
         'reviewed_at',
@@ -49,6 +52,7 @@ class Company extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'moderates_columns' => 'boolean',
         'status' => ModerationStatus::class,
         'reviewed_at' => 'datetime',
     ];
@@ -56,6 +60,28 @@ class Company extends Model
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    public function jobOpenings(): HasMany
+    {
+        return $this->hasMany(JobOpening::class);
+    }
+
+    /** Perfil de colunista, quando esta empresa assina coluna no portal. */
+    public function columnist(): HasOne
+    {
+        return $this->hasOne(Columnist::class);
+    }
+
+    public function getRenderedDescriptionAttribute(): string
+    {
+        return $this->renderMarkdown($this->description);
+    }
+
+    /** Sem formatacao, para o cartao do diretorio. */
+    public function getDescriptionExcerptAttribute(): string
+    {
+        return $this->plainFromMarkdown($this->description, 180);
     }
 
     /**

@@ -5,12 +5,14 @@ namespace App\Models;
 use App\Enums\ModerationStatus;
 use App\Models\Concerns\HasUniqueSlug;
 use App\Models\Concerns\Moderatable;
+use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Member extends Model
@@ -18,6 +20,7 @@ class Member extends Model
     use HasFactory;
     use HasUniqueSlug;
     use Moderatable;
+    use RendersMarkdown;
     use SoftDeletes;
 
     protected $fillable = [
@@ -104,6 +107,23 @@ class Member extends Model
             $inner->whereNull('company_id')
                 ->orWhereHas('company', fn (Builder $company) => $company->visible());
         });
+    }
+
+    /** Perfil de colunista, quando este membro assina coluna no portal. */
+    public function columnist(): HasOne
+    {
+        return $this->hasOne(Columnist::class);
+    }
+
+    public function getRenderedSummaryAttribute(): string
+    {
+        return $this->renderMarkdown($this->summary);
+    }
+
+    /** Sem formatacao, para o cartao do diretorio. */
+    public function getSummaryExcerptAttribute(): string
+    {
+        return $this->plainFromMarkdown($this->summary, 180);
     }
 
     public function isPubliclyVisible(): bool

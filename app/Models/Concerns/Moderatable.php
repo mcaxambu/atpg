@@ -54,6 +54,14 @@ trait Moderatable
         return $this->status === ModerationStatus::Pending;
     }
 
+    /**
+     * Aprovado pela associacao — independente de estar publicado agora.
+     */
+    public function isApproved(): bool
+    {
+        return $this->status === ModerationStatus::Approved;
+    }
+
     public function isRejected(): bool
     {
         return $this->status === ModerationStatus::Rejected;

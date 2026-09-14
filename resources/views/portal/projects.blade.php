@@ -11,7 +11,7 @@
 
 @if ($cmsPage?->body)
 <section class="section">
-    <article class="content-card institutional-content">{!! nl2br(e($cmsPage->body)) !!}</article>
+    <article class="content-card institutional-content rich-text">{!! $cmsPage->rendered_body !!}</article>
 </section>
 @endif
 

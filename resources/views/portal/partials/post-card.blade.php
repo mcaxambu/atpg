@@ -8,12 +8,23 @@
     </a>
     <div class="post-card-body">
         <div class="post-meta">
-            <span>{{ $post->category }}</span>
+            {{-- Coluna e noticia com autor; o selo evita confundir opiniao
+                 assinada com noticia institucional da associacao. --}}
+            @if ($post->isColumn())
+                <span class="post-column-tag">Coluna</span>
+            @else
+                <span>{{ $post->category }}</span>
+            @endif
             <span>{{ $post->published_at?->format('d/m/Y') }}</span>
             <span>{{ $post->reading_time }}</span>
         </div>
         <h3><a href="{{ route('posts.show', $post) }}">{{ $post->title }}</a></h3>
+
+        @if ($post->isColumn() && $post->columnist)
+            <p class="post-byline">por <strong>{{ $post->columnist->byline }}</strong></p>
+        @endif
+
         <p>{{ $post->excerpt_text }}</p>
-        <a class="post-link" href="{{ route('posts.show', $post) }}">Ler notícia</a>
+        <a class="post-link" href="{{ route('posts.show', $post) }}">{{ $post->isColumn() ? 'Ler coluna' : 'Ler notícia' }}</a>
     </div>
 </article>

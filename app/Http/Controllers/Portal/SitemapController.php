@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
 use App\Models\Company;
+use App\Models\Columnist;
 use App\Models\Event;
+use App\Models\JobOpening;
 use App\Models\Member;
 use App\Models\Post;
 use Illuminate\Http\Response;
@@ -20,6 +22,8 @@ class SitemapController extends Controller
             ['home', 'daily', '1.0'],
             ['companies.index', 'daily', '0.9'],
             ['members.index', 'daily', '0.9'],
+            ['vagas.index', 'daily', '0.8'],
+            ['colunas.index', 'weekly', '0.7'],
             ['events', 'weekly', '0.8'],
             ['posts.index', 'daily', '0.8'],
             ['join', 'monthly', '0.7'],
@@ -42,6 +46,14 @@ class SitemapController extends Controller
 
         Member::publiclyVisible()->get(['id', 'company_id', 'slug', 'updated_at'])->each(
             fn (Member $member) => $urls->push([route('members.show', $member->slug), $member->updated_at, 'weekly', '0.6'])
+        );
+
+        JobOpening::publiclyVisible()->get(['id', 'company_id', 'slug', 'updated_at'])->each(
+            fn (JobOpening $job) => $urls->push([route('vagas.show', $job->slug), $job->updated_at, 'daily', '0.7'])
+        );
+
+        Columnist::publiclyVisible()->get(['id', 'member_id', 'company_id', 'slug', 'updated_at'])->each(
+            fn (Columnist $columnist) => $urls->push([route('colunas.show', $columnist->slug), $columnist->updated_at, 'weekly', '0.6'])
         );
 
         Post::published()->get(['slug', 'updated_at'])->each(

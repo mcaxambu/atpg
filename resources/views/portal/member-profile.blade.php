@@ -24,7 +24,7 @@
 
     <div class="profile-grid">
         <div class="profile-main">
-            <section class="content-card"><h2>Resumo profissional</h2><p>{{ $member->summary }}</p></section>
+            <section class="content-card"><h2>Resumo profissional</h2><div class="rich-text">{!! $member->rendered_summary !!}</div></section>
             <section class="content-card"><h2>Experiencias</h2><ul>@foreach ($member->experiences as $experience)<li>{{ $experience->title }}</li>@endforeach</ul></section>
             <section class="content-card"><h2>Projetos realizados</h2><ul>@foreach ($member->projects as $project)<li>{{ $project->title }}</li>@endforeach</ul></section>
             <section class="content-card"><h2>Certificações</h2><ul>@foreach ($member->certifications as $certification)<li>{{ $certification->title }}</li>@endforeach</ul></section>

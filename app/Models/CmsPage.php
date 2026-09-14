@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class CmsPage extends Model
 {
     use HasFactory;
+    use RendersMarkdown;
 
     protected $fillable = [
         'title',
@@ -35,6 +36,12 @@ class CmsPage extends Model
 
     public function getExcerptTextAttribute(): string
     {
-        return $this->excerpt ?: Str::limit(strip_tags($this->body ?? ''), 160);
+        return $this->excerpt ?: $this->plainFromMarkdown($this->body, 160);
+    }
+
+    /** Corpo da pagina em HTML, a partir do Markdown gravado pelo editor. */
+    public function getRenderedBodyAttribute(): string
+    {
+        return $this->renderMarkdown($this->body);
     }
 }

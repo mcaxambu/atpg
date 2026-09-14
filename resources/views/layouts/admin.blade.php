@@ -3,18 +3,24 @@
 
     $pendingCompanies = \App\Models\Company::pending()->count();
     $pendingMembers = \App\Models\Member::pending()->count();
+    $pendingJobs = \App\Models\JobOpening::pending()->count();
+    $pendingColumns = \App\Models\Post::columns()->pending()->count();
 
     $isCms = request()->routeIs('admin.cms.*');
 
     $mainMenu = [
         ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')],
-        ['label' => 'Membros', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
-        ['label' => 'Membros pendentes', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
-        ['label' => 'Empresas', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],
-        ['label' => 'Empresas pendentes', 'icon' => 'inbox', 'route' => route('admin.companies.pending'), 'active' => request()->routeIs('admin.companies.pending'), 'badge' => $pendingCompanies],
-        ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
-        ['label' => 'Especialidades', 'icon' => 'tag', 'route' => route('admin.specialties.index'), 'active' => request()->routeIs('admin.specialties.*')],
-        ['label' => 'Atas de reunião', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
+        ['label' => 'Membros', 'module' => 'members', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
+        ['label' => 'Membros pendentes', 'module' => 'members', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
+        ['label' => 'Empresas', 'module' => 'companies', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],
+        ['label' => 'Empresas pendentes', 'module' => 'companies', 'icon' => 'inbox', 'route' => route('admin.companies.pending'), 'active' => request()->routeIs('admin.companies.pending'), 'badge' => $pendingCompanies],
+        ['label' => 'Vagas', 'module' => 'jobs', 'icon' => 'file', 'route' => route('admin.jobs.index'), 'active' => request()->routeIs('admin.jobs.index') || request()->routeIs('admin.jobs.show')],
+        ['label' => 'Vagas pendentes', 'module' => 'jobs', 'icon' => 'inbox', 'route' => route('admin.jobs.pending'), 'active' => request()->routeIs('admin.jobs.pending'), 'badge' => $pendingJobs],
+        ['label' => 'Colunas', 'module' => 'columns', 'icon' => 'news', 'route' => route('admin.columns.index'), 'active' => request()->routeIs('admin.columns.index') || request()->routeIs('admin.columns.show') || request()->routeIs('admin.columns.columnists')],
+        ['label' => 'Colunas pendentes', 'module' => 'columns', 'icon' => 'inbox', 'route' => route('admin.columns.pending'), 'active' => request()->routeIs('admin.columns.pending'), 'badge' => $pendingColumns],
+        ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
+        ['label' => 'Especialidades', 'module' => 'specialties', 'icon' => 'tag', 'route' => route('admin.specialties.index'), 'active' => request()->routeIs('admin.specialties.*')],
+        ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
     ];
 
     $moduleIcons = [
@@ -24,6 +30,8 @@
         'depoimentos' => 'quote',
         'projetos' => 'layers',
         'parceiros' => 'handshake',
+        'missao-visao' => 'star',
+        'valores' => 'layers',
     ];
 
     $cmsMenu = [
@@ -45,13 +53,26 @@
     $cmsMenu[] = ['label' => 'Configurações', 'icon' => 'settings', 'route' => route('admin.cms.settings.edit'), 'active' => request()->routeIs('admin.cms.settings.*')];
 
     $systemMenu = [
-        ['label' => 'Usuários', 'icon' => 'shield', 'route' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
-        ['label' => 'Lixeira de empresas', 'icon' => 'trash', 'route' => route('admin.companies.trash'), 'active' => request()->routeIs('admin.companies.trash')],
-        ['label' => 'Lixeira de membros', 'icon' => 'trash', 'route' => route('admin.members.trash'), 'active' => request()->routeIs('admin.members.trash')],
+        ['label' => 'Usuários', 'module' => 'users', 'icon' => 'shield', 'route' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
+        ['label' => 'Lixeira de empresas', 'module' => 'companies', 'icon' => 'trash', 'route' => route('admin.companies.trash'), 'active' => request()->routeIs('admin.companies.trash')],
+        ['label' => 'Lixeira de membros', 'module' => 'members', 'icon' => 'trash', 'route' => route('admin.members.trash'), 'active' => request()->routeIs('admin.members.trash')],
         ['label' => 'Ver site público', 'icon' => 'globe', 'route' => route('home'), 'active' => false],
     ];
 
     $currentUser = auth()->user();
+
+    // Item sem 'module' e livre para todo admin (dashboard, site publico).
+    $allowed = fn (array $item) => ! isset($item['module']) || $currentUser?->canAccessModule($item['module']);
+
+    $mainMenu = array_values(array_filter($mainMenu, $allowed));
+    $systemMenu = array_values(array_filter($systemMenu, $allowed));
+
+    $canUseCms = (bool) $currentUser?->canAccessModule('cms');
+
+    if (! $canUseCms) {
+        $cmsMenu = [];
+        $isCms = false;
+    }
 @endphp
 <!doctype html>
 <html lang="pt-BR" class="h-full">
@@ -136,6 +157,7 @@
 
             <nav class="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 no-scrollbar">
                 @foreach ([['Gestão', $mainMenu], ['CMS do website', $cmsMenu], ['Sistema', $systemMenu]] as [$groupTitle, $items])
+                    @continue (empty($items))
                     <div>
                         <h2 class="mb-3 flex items-center px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
                             :class="$store.sidebar.isWide ? 'justify-start' : 'xl:justify-center'">
@@ -220,9 +242,11 @@
                                 <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]">
                                     <x-admin.icon name="users" class="h-4 w-4" />Meu perfil
                                 </a>
-                                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]">
-                                    <x-admin.icon name="shield" class="h-4 w-4" />Usuários
-                                </a>
+                                @if ($currentUser?->canAccessModule('users'))
+                                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]">
+                                        <x-admin.icon name="shield" class="h-4 w-4" />Usuários
+                                    </a>
+                                @endif
                                 <form method="post" action="{{ route('admin.logout') }}" class="border-t border-gray-100 dark:border-gray-800">
                                     @csrf
                                     <button type="submit" class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-error-600 hover:bg-error-50 dark:text-error-400 dark:hover:bg-error-500/10">

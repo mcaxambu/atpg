@@ -46,6 +46,7 @@ class CompanyRequest extends FormRequest
             'status' => ['required', new Enum(ModerationStatus::class)],
             'rejection_reason' => ['nullable', 'string', 'max:1000', 'required_if:status,'.ModerationStatus::Rejected->value],
             'is_active' => ['nullable', 'boolean'],
+            'moderates_columns' => ['nullable', 'boolean'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
         ];
     }
@@ -68,6 +69,7 @@ class CompanyRequest extends FormRequest
 
         $data['slug'] = Company::uniqueSlug($data['name'], $company?->id);
         $data['is_active'] = $data['status'] === ModerationStatus::Approved->value && $this->boolean('is_active');
+        $data['moderates_columns'] = $this->boolean('moderates_columns');
 
         if ($data['status'] !== ModerationStatus::Rejected->value) {
             $data['rejection_reason'] = null;

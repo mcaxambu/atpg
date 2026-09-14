@@ -1124,3 +1124,69 @@ pre[class*='language-'] {
 
   .dark .ata-conteudo hr { border-color: var(--color-gray-700); }
 }
+
+/*
+    Editor visual dos campos longos do painel.
+    O textarea original continua no formulario (e ele que o Laravel recebe),
+    apenas fora da vista.
+*/
+.rich-editor-source {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/*
+    SEM overflow: hidden aqui.
+    O menu de titulo (e os demais popups da barra) abre para fora da moldura;
+    com overflow escondido, o ultimo item — "Paragraph", justamente o que tira
+    o titulo — ficava cortado e inalcancavel. O arredondamento fica no
+    elemento interno, que ja tem a borda.
+*/
+.rich-editor .toastui-editor-defaultUI {
+    border-color: var(--color-gray-300, #d1d5db);
+    border-radius: 0.5rem;
+}
+
+/*
+    O estado "formato aplicado" do editor so mudava a tonalidade do icone
+    (background-position-y), enquanto o hover pinta um retangulo cinza: passar
+    o mouse parecia mais "ligado" do que estar realmente ligado. Aqui o
+    aplicado ganha a cor da marca, e fica distinto do hover.
+*/
+.rich-editor .toastui-editor-toolbar-icons.active {
+    background-color: color-mix(in srgb, var(--color-brand-500) 20%, transparent);
+    border-color: var(--color-brand-400);
+}
+
+.rich-editor-invalido .toastui-editor-defaultUI {
+    border-color: var(--color-error-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-500) 15%, transparent);
+}
+
+.dark .rich-editor .toastui-editor-defaultUI {
+    border-color: var(--color-gray-700, #374151);
+}
+
+/* Conteudo em Markdown exibido dentro do painel (ex.: analise da vaga). */
+.prose-admin > *:first-child { margin-top: 0; }
+.prose-admin > *:last-child { margin-bottom: 0; }
+.prose-admin p { margin: 0 0 1em; line-height: 1.7; }
+.prose-admin h2 { margin: 1.4em 0 .5em; font-size: 1.15rem; font-weight: 700; }
+.prose-admin h3 { margin: 1.2em 0 .4em; font-size: 1.05rem; font-weight: 700; }
+.prose-admin ul { margin: 0 0 1em; padding-left: 20px; list-style: disc; }
+.prose-admin ol { margin: 0 0 1em; padding-left: 20px; list-style: decimal; }
+.prose-admin li { margin-bottom: .3em; }
+.prose-admin a { color: var(--color-brand-600); text-decoration: underline; }
+.prose-admin strong { font-weight: 700; }
+.prose-admin blockquote {
+    margin: 1em 0;
+    padding-left: 14px;
+    border-left: 3px solid var(--color-brand-400);
+}

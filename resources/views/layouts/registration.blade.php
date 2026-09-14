@@ -79,10 +79,19 @@
             min-height: 100%;
         }
 
+        /*
+            Conteudo alinhado ao topo.
+
+            Antes era `space-between`: como a coluna da direita e comprida (a
+            convocacao inteira, o formulario de cadastro), o painel esticava
+            junto e os tres blocos eram jogados para os extremos — sobrava um
+            vao grande entre a logo e o titulo, que ficava perdido no meio do
+            azul. A nota continua no rodape pelo `margin-top: auto` dela.
+        */
         .registration-aside {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
             gap: 36px;
             padding: clamp(28px, 5vw, 46px);
             color: #fff;
@@ -187,6 +196,8 @@
         }
 
         .aside-note {
+            /* Empurra so a nota para o rodape do painel; o resto fica no topo. */
+            margin-top: auto;
             padding: 16px;
             font-size: .94rem;
         }

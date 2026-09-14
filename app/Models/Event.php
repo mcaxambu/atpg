@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class Event extends Model
 {
     use HasFactory;
+    use RendersMarkdown;
 
     protected $fillable = [
         'title',
@@ -36,5 +38,16 @@ class Event extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    public function getRenderedDescriptionAttribute(): string
+    {
+        return $this->renderMarkdown($this->description);
+    }
+
+    /** Sem formatacao, para o cartao da agenda. */
+    public function getDescriptionExcerptAttribute(): string
+    {
+        return $this->plainFromMarkdown($this->description, 220);
     }
 }

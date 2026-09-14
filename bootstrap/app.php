@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserCanAccessModule;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\ForceHttps;
 use App\Http\Middleware\ProtectPublicForm;
@@ -46,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'public-form' => ProtectPublicForm::class,
             'role' => EnsureUserHasRole::class,
+            'module' => EnsureUserCanAccessModule::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('entrar'));
