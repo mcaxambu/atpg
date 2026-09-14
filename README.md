@@ -4,7 +4,6 @@ Portal Laravel para apresentar e operar a associação de tecnologia de Ponta Gr
 Reúne um site institucional público e um painel administrativo com CMS.
 
 - **Stack:** Laravel 13 · PHP 8.3 · MariaDB · Tailwind 4 + Alpine (admin) · CSS próprio (site)
-- **Ambiente:** <https://siteshpg.xyz/atpg>
 
 ## Como o portal está organizado
 

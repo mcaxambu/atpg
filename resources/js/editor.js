@@ -2,7 +2,7 @@
  * Entrypoint do editor visual dos campos longos do painel.
  *
  * E um entrypoint separado de proposito, e nao um import dinamico dentro do
- * app.js: o portal tambem roda sob subpasta (siteshpg.xyz/atpg), e o Vite
+ * app.js: o portal tambem roda sob subpasta (/atpg), e o Vite
  * resolve a base dos imports dinamicos em tempo de build — os chunks eram
  * buscados em /build/... sem o prefixo e davam 404. Como entrypoint, a URL sai
  * do @vite, que respeita a raiz resolvida em runtime.
