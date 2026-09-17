@@ -1155,6 +1155,62 @@ pre[class*='language-'] {
 }
 
 /*
+    A AREA EDITAVEL e que carrega a altura minima, nao a moldura.
+
+    O editor cresce com o texto (`height: auto`), e nesse modo a area editavel
+    fica do tamanho do conteudo. Com a altura minima na moldura, um campo vazio
+    desenhava 320px de caixa com apenas 57px clicaveis: clicar no meio da caixa
+    nao levava o cursor para o texto, e o que a pessoa digitava em seguida ia
+    para o campo que estava focado antes. Aqui o piso vai para dentro, entao
+    toda a area desenhada aceita clique.
+*/
+.rich-editor .toastui-editor-ww-container .toastui-editor-contents {
+    min-height: var(--rich-editor-altura, 320px);
+}
+
+/*
+    Nome escrito ao lado do icone, so nos botoes que ninguem adivinha —
+    citacao aparece como `66`, linha divisoria como um traco solto.
+
+    Negrito, italico, riscado e as duas listas ficam apenas com o icone de
+    proposito: B, I, S riscado, marcadores e numeros sao reconheciveis, e cada
+    rotulo a mais alargava a barra o suficiente para o editor jogar botoes
+    dentro do menu de excesso (`…`) numa tela de notebook — medido em 820px,
+    onde "Link" desaparecia. O nome completo continua no hover, pelo
+    `aria-label`, que ja esta em portugues.
+*/
+.rich-editor .toastui-editor-toolbar-icons.heading,
+.rich-editor .toastui-editor-toolbar-icons.hrline,
+.rich-editor .toastui-editor-toolbar-icons.quote,
+.rich-editor .toastui-editor-toolbar-icons.table,
+.rich-editor .toastui-editor-toolbar-icons.link {
+    /*
+        `background-image: none` e obrigatorio aqui. Os icones do pacote sao
+        UMA folha unica, recortada pela largura de 32px do botao: alargar a
+        caixa sem tirar a imagem faz aparecerem os icones vizinhos por tras do
+        texto. Nestes botoes o nome escrito substitui o icone.
+    */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 0;
+    padding: 0 10px;
+    background-image: none;
+    font-size: 0.75rem;
+    color: var(--color-gray-600, #4b5563);
+    white-space: nowrap;
+}
+
+.dark .rich-editor .toastui-editor-toolbar-icons { color: var(--color-gray-300, #d1d5db); }
+
+.rich-editor .toastui-editor-toolbar-icons.heading::after { content: 'Título'; }
+.rich-editor .toastui-editor-toolbar-icons.hrline::after { content: 'Linha'; }
+.rich-editor .toastui-editor-toolbar-icons.quote::after { content: 'Citação'; }
+.rich-editor .toastui-editor-toolbar-icons.table::after { content: 'Tabela'; }
+.rich-editor .toastui-editor-toolbar-icons.link::after { content: 'Link'; }
+
+/*
     O estado "formato aplicado" do editor so mudava a tonalidade do icone
     (background-position-y), enquanto o hover pinta um retangulo cinza: passar
     o mouse parecia mais "ligado" do que estar realmente ligado. Aqui o

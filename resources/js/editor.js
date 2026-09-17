@@ -37,12 +37,16 @@ Editor.setLanguage('pt-BR', {
     Line: 'Linha divisória',
 });
 
+/*
+ * Sem 'code' e 'codeblock': sao campos de texto editorial (noticia, coluna,
+ * pagina, vaga), nao documentacao tecnica. Os dois botoes so apareciam como
+ * `</>` e `CB` na barra e nao tinham uso.
+ */
 const TOOLBAR = [
     ['heading', 'bold', 'italic', 'strike'],
     ['hr', 'quote'],
     ['ul', 'ol'],
     ['table', 'link'],
-    ['code', 'codeblock'],
 ];
 
 /*
@@ -52,6 +56,12 @@ const TOOLBAR = [
  * O piso nao pode sair do atributo `rows`: nem todo textarea do painel tem um
  * (varios usam classe do Tailwind para altura), e o calculo caia no minimo,
  * deixando a area curta demais para uma pagina institucional inteira.
+ *
+ * ATENCAO: este piso vai numa variavel CSS aplicada a AREA EDITAVEL, e nao na
+ * opcao `minHeight` do editor. Com `minHeight`, quem ficava alto era so a
+ * moldura: a area editavel continuava do tamanho do texto (57px num campo
+ * vazio) e todo o resto da caixa era area morta — o clique nao levava o cursor
+ * para o texto, e o que a pessoa digitava ia para o campo focado antes.
  */
 function alturaMinimaDe(textarea) {
     const linhas = Number(textarea.getAttribute('rows') || 0);
@@ -62,6 +72,7 @@ function alturaMinimaDe(textarea) {
 function montar(textarea) {
     const container = document.createElement('div');
     container.className = 'rich-editor';
+    container.style.setProperty('--rich-editor-altura', alturaMinimaDe(textarea));
     textarea.parentNode.insertBefore(container, textarea);
 
     // O textarea segue no formulario: e ele que o Laravel recebe.
@@ -72,9 +83,11 @@ function montar(textarea) {
     const editor = new Editor({
         el: container,
         height: 'auto',
-        minHeight: alturaMinimaDe(textarea),
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
+        // Sem as abas "Markdown / WYSIWYG": quem escreve noticia caia sem
+        // querer na tela de codigo e achava que tinha perdido o texto.
+        hideModeSwitch: true,
         initialValue: textarea.value || '',
         usageStatistics: false,
         language: 'pt-BR',
