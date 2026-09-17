@@ -1125,10 +1125,13 @@ pre[class*='language-'] {
   .dark .ata-conteudo hr { border-color: var(--color-gray-700); }
 }
 
+
 /*
     Editor visual dos campos longos do painel.
+
     O textarea original continua no formulario (e ele que o Laravel recebe),
-    apenas fora da vista.
+    apenas fora da vista. A barra e os botoes sao nossos: nenhuma folha de
+    estilo de biblioteca entra aqui.
 */
 .rich-editor-source {
     position: absolute;
@@ -1142,93 +1145,223 @@ pre[class*='language-'] {
     border: 0;
 }
 
-/*
-    SEM overflow: hidden aqui.
-    O menu de titulo (e os demais popups da barra) abre para fora da moldura;
-    com overflow escondido, o ultimo item — "Paragraph", justamente o que tira
-    o titulo — ficava cortado e inalcancavel. O arredondamento fica no
-    elemento interno, que ja tem a borda.
-*/
-.rich-editor .toastui-editor-defaultUI {
-    border-color: var(--color-gray-300, #d1d5db);
+.rich-editor {
+    border: 1px solid var(--color-gray-300);
     border-radius: 0.5rem;
+    background-color: var(--color-white);
+    overflow: hidden;
 }
 
-/*
-    A AREA EDITAVEL e que carrega a altura minima, nao a moldura.
-
-    O editor cresce com o texto (`height: auto`), e nesse modo a area editavel
-    fica do tamanho do conteudo. Com a altura minima na moldura, um campo vazio
-    desenhava 320px de caixa com apenas 57px clicaveis: clicar no meio da caixa
-    nao levava o cursor para o texto, e o que a pessoa digitava em seguida ia
-    para o campo que estava focado antes. Aqui o piso vai para dentro, entao
-    toda a area desenhada aceita clique.
-*/
-.rich-editor .toastui-editor-ww-container .toastui-editor-contents {
-    min-height: var(--rich-editor-altura, 320px);
+.dark .rich-editor {
+    border-color: var(--color-gray-700);
+    background-color: var(--color-gray-900);
 }
 
-/*
-    Nome escrito ao lado do icone, so nos botoes que ninguem adivinha —
-    citacao aparece como `66`, linha divisoria como um traco solto.
-
-    Negrito, italico, riscado e as duas listas ficam apenas com o icone de
-    proposito: B, I, S riscado, marcadores e numeros sao reconheciveis, e cada
-    rotulo a mais alargava a barra o suficiente para o editor jogar botoes
-    dentro do menu de excesso (`…`) numa tela de notebook — medido em 820px,
-    onde "Link" desaparecia. O nome completo continua no hover, pelo
-    `aria-label`, que ja esta em portugues.
-*/
-.rich-editor .toastui-editor-toolbar-icons.heading,
-.rich-editor .toastui-editor-toolbar-icons.hrline,
-.rich-editor .toastui-editor-toolbar-icons.quote,
-.rich-editor .toastui-editor-toolbar-icons.table,
-.rich-editor .toastui-editor-toolbar-icons.link {
-    /*
-        `background-image: none` e obrigatorio aqui. Os icones do pacote sao
-        UMA folha unica, recortada pela largura de 32px do botao: alargar a
-        caixa sem tirar a imagem faz aparecerem os icones vizinhos por tras do
-        texto. Nestes botoes o nome escrito substitui o icone.
-    */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    min-width: 0;
-    padding: 0 10px;
-    background-image: none;
-    font-size: 0.75rem;
-    color: var(--color-gray-600, #4b5563);
-    white-space: nowrap;
-}
-
-.dark .rich-editor .toastui-editor-toolbar-icons { color: var(--color-gray-300, #d1d5db); }
-
-.rich-editor .toastui-editor-toolbar-icons.heading::after { content: 'Título'; }
-.rich-editor .toastui-editor-toolbar-icons.hrline::after { content: 'Linha'; }
-.rich-editor .toastui-editor-toolbar-icons.quote::after { content: 'Citação'; }
-.rich-editor .toastui-editor-toolbar-icons.table::after { content: 'Tabela'; }
-.rich-editor .toastui-editor-toolbar-icons.link::after { content: 'Link'; }
-
-/*
-    O estado "formato aplicado" do editor so mudava a tonalidade do icone
-    (background-position-y), enquanto o hover pinta um retangulo cinza: passar
-    o mouse parecia mais "ligado" do que estar realmente ligado. Aqui o
-    aplicado ganha a cor da marca, e fica distinto do hover.
-*/
-.rich-editor .toastui-editor-toolbar-icons.active {
-    background-color: color-mix(in srgb, var(--color-brand-500) 20%, transparent);
-    border-color: var(--color-brand-400);
-}
-
-.rich-editor-invalido .toastui-editor-defaultUI {
+.rich-editor-invalido {
     border-color: var(--color-error-500);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-500) 15%, transparent);
 }
 
-.dark .rich-editor .toastui-editor-defaultUI {
-    border-color: var(--color-gray-700, #374151);
+/*
+    A barra PODE quebrar em duas linhas (`flex-wrap`).
+
+    Barra que nao quebra precisa esconder o excesso atras de um menu "…", e foi
+    exatamente assim que o botao de link desapareceu numa tela de notebook com
+    o editor anterior. Duas linhas de botoes visiveis e melhor do que uma linha
+    com botoes escondidos.
+*/
+.rich-editor-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+    background-color: var(--color-gray-50);
 }
+
+.dark .rich-editor-barra {
+    border-color: var(--color-gray-800);
+    background-color: var(--color-gray-dark);
+}
+
+.rich-editor-barra-tabela {
+    gap: 0.375rem;
+    background-color: var(--color-brand-25);
+}
+
+.dark .rich-editor-barra-tabela { background-color: color-mix(in srgb, var(--color-brand-500) 12%, transparent); }
+
+.rich-editor-separador {
+    width: 1px;
+    height: 1.25rem;
+    margin: 0 0.25rem;
+    background-color: var(--color-gray-300);
+}
+
+.dark .rich-editor-separador { background-color: var(--color-gray-700); }
+
+.rich-editor-botao {
+    min-width: 1.875rem;
+    padding: 0.3125rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--color-gray-700);
+    white-space: nowrap;
+}
+
+.dark .rich-editor-botao { color: var(--color-gray-300); }
+
+.rich-editor-botao:hover {
+    background-color: var(--color-gray-100);
+}
+
+.dark .rich-editor-botao:hover { background-color: rgba(255, 255, 255, 0.06); }
+
+/*
+    Estado "formato aplicado" com a cor da marca.
+
+    Se o aplicado usasse apenas um cinza, passar o mouse pareceria mais "ligado"
+    do que estar realmente ligado — foi o que aconteceu no editor anterior.
+*/
+.rich-editor-botao.rich-editor-ligado {
+    background-color: color-mix(in srgb, var(--color-brand-500) 14%, transparent);
+    border-color: var(--color-brand-400);
+    color: var(--color-brand-700);
+}
+
+.dark .rich-editor-botao.rich-editor-ligado { color: var(--color-brand-300); }
+
+.rich-editor-negrito { font-weight: 700; }
+.rich-editor-italico { font-style: italic; }
+.rich-editor-riscado { text-decoration: line-through; }
+
+.rich-editor-link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+    background-color: var(--color-gray-50);
+}
+
+.dark .rich-editor-link {
+    border-color: var(--color-gray-800);
+    background-color: var(--color-gray-dark);
+}
+
+.rich-editor-link-campo {
+    flex: 1 1 14rem;
+    min-width: 0;
+    padding: 0.3125rem 0.625rem;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 0.375rem;
+    background-color: transparent;
+    font-size: 0.8125rem;
+    color: inherit;
+}
+
+.dark .rich-editor-link-campo { border-color: var(--color-gray-700); }
+
+/*
+    A AREA EDITAVEL e que carrega a altura minima, nao a moldura.
+
+    Com a altura na moldura, um campo vazio desenhava uma caixa alta com poucos
+    pixels clicaveis no topo: clicar no meio nao levava o cursor para o texto, e
+    o que a pessoa digitava em seguida ia para o campo focado antes. Aqui o piso
+    vai para dentro, entao toda a area desenhada aceita clique.
+*/
+.rich-editor .ProseMirror {
+    min-height: var(--rich-editor-altura, 320px);
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--color-gray-800);
+    outline: none;
+}
+
+.dark .rich-editor .ProseMirror { color: var(--color-gray-100); }
+
+/* Texto de exemplo do campo vazio, que desaparece na primeira letra. */
+.rich-editor .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--color-gray-400);
+    pointer-events: none;
+}
+
+.rich-editor .ProseMirror > *:first-child { margin-top: 0; }
+.rich-editor .ProseMirror > *:last-child { margin-bottom: 0; }
+.rich-editor .ProseMirror p { margin: 0 0 1em; }
+.rich-editor .ProseMirror h2 { margin: 1.4em 0 .5em; font-size: 1.15rem; font-weight: 700; }
+.rich-editor .ProseMirror h3 { margin: 1.2em 0 .4em; font-size: 1.05rem; font-weight: 700; }
+.rich-editor .ProseMirror h4 { margin: 1.1em 0 .4em; font-size: 1rem; font-weight: 700; }
+.rich-editor .ProseMirror ul { margin: 0 0 1em; padding-left: 20px; list-style: disc; }
+.rich-editor .ProseMirror ol { margin: 0 0 1em; padding-left: 22px; list-style: decimal; }
+.rich-editor .ProseMirror li { margin-bottom: .3em; }
+.rich-editor .ProseMirror a { color: var(--color-brand-600); text-decoration: underline; }
+.dark .rich-editor .ProseMirror a { color: var(--color-brand-400); }
+.rich-editor .ProseMirror strong { font-weight: 700; }
+.rich-editor .ProseMirror em { font-style: italic; }
+.rich-editor .ProseMirror s { text-decoration: line-through; }
+
+.rich-editor .ProseMirror blockquote {
+    margin: 1em 0;
+    padding-left: 14px;
+    border-left: 3px solid var(--color-brand-400);
+    color: var(--color-gray-600);
+}
+
+.dark .rich-editor .ProseMirror blockquote { color: var(--color-gray-400); }
+
+.rich-editor .ProseMirror hr {
+    margin: 1.5em 0;
+    border: 0;
+    border-top: 1px solid var(--color-gray-300);
+}
+
+.dark .rich-editor .ProseMirror hr { border-color: var(--color-gray-700); }
+
+/* Tabela: a ata gerada pelo sistema traz o quadro de acoes nesse formato. */
+.rich-editor .ProseMirror table {
+    width: 100%;
+    margin: 1em 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.rich-editor .ProseMirror th,
+.rich-editor .ProseMirror td {
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--color-gray-300);
+    text-align: left;
+    vertical-align: top;
+}
+
+.rich-editor .ProseMirror th {
+    background-color: var(--color-gray-50);
+    font-weight: 700;
+}
+
+.dark .rich-editor .ProseMirror th,
+.dark .rich-editor .ProseMirror td { border-color: var(--color-gray-700); }
+.dark .rich-editor .ProseMirror th { background-color: var(--color-gray-800); }
+
+/* Celula sob o cursor, para nao perder de vista onde a edicao vai cair. */
+.rich-editor .ProseMirror .selectedCell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+    pointer-events: none;
+}
+
+.rich-editor .ProseMirror td,
+.rich-editor .ProseMirror th { position: relative; }
 
 /* Conteudo em Markdown exibido dentro do painel (ex.: analise da vaga). */
 .prose-admin > *:first-child { margin-top: 0; }
