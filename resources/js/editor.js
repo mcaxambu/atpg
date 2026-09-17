@@ -16,6 +16,27 @@ import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 
+/*
+ * Interface em portugues. O arquivo de i18n do pacote trata o editor como
+ * dependencia externa (6 KB, sem segunda copia da biblioteca) e so registra o
+ * idioma; quem escolhe e a opcao `language` de cada instancia.
+ */
+import '@toast-ui/editor/dist/i18n/pt-br';
+
+/*
+ * Alguns rotulos do pacote sao traducao automatica ruim ("colar como mesa"
+ * para table, "Traçado" para strike). Registrar o mesmo idioma de novo faz
+ * merge: so estas chaves mudam, o resto do arquivo oficial continua valendo.
+ */
+Editor.setLanguage('pt-BR', {
+    Strike: 'Riscado',
+    Code: 'Código',
+    'Insert CodeBlock': 'Bloco de código',
+    'Link text': 'Texto do link',
+    'Would you like to paste as table?': 'Deseja colar como tabela?',
+    Line: 'Linha divisória',
+});
+
 const TOOLBAR = [
     ['heading', 'bold', 'italic', 'strike'],
     ['hr', 'quote'],
@@ -56,6 +77,7 @@ function montar(textarea) {
         previewStyle: 'vertical',
         initialValue: textarea.value || '',
         usageStatistics: false,
+        language: 'pt-BR',
         toolbarItems: TOOLBAR,
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
         placeholder: textarea.getAttribute('placeholder') || '',
