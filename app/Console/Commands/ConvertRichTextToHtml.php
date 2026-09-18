@@ -44,7 +44,9 @@ class ConvertRichTextToHtml extends Command
         Company::class => 'description',
         Member::class => 'summary',
         Event::class => 'description',
-        Columnist::class => 'presentation',
+        // `bio` e a coluna gravada; `presentation` e so um atributo de leitura
+        // e, listado aqui, fazia o colunista ser pulado em silencio.
+        Columnist::class => 'bio',
     ];
 
     public function handle(): int

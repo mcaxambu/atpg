@@ -34,6 +34,7 @@ class Columnist extends Model
         'slug',
         'headline',
         'bio',
+        'custom_photo_path',
         'is_active',
     ];
 
@@ -88,9 +89,31 @@ class Columnist extends Model
         return $this->display_name;
     }
 
+    /**
+     * Foto da assinatura: a propria do colunista, senao a do cadastro.
+     *
+     * Toda tela do portal que mostra o colunista le este atributo, entao a
+     * foto enviada pelo painel aparece em todo lugar sem mexer em view.
+     */
     public function getPhotoPathAttribute(): ?string
     {
-        return $this->member?->photo_path ?? $this->company?->logo_path;
+        return $this->custom_photo_path
+            ?? $this->member?->photo_path
+            ?? $this->company?->logo_path;
+    }
+
+    public function hasCustomPhoto(): bool
+    {
+        return filled($this->custom_photo_path);
+    }
+
+    /**
+     * O que aparece quando o colunista nao tem foto propria — o painel usa
+     * isto para explicar o que acontece ao remover a foto.
+     */
+    public function fallbackPhotoLabel(): string
+    {
+        return $this->isCompany() ? 'o logo da empresa' : 'a foto do seu cadastro';
     }
 
     public function getInitialsAttribute(): string
@@ -135,9 +158,13 @@ class Columnist extends Model
      * por mais de um caminho (painel da diretoria, painel da empresa,
      * painel do membro, importacao e seeder) — a trava tem de morar onde
      * todos passam. Ver App\Models\Concerns\RendersRichText.
+     *
+     * A coluna gravada e `bio`. `presentation` e so leitura — a bio, ou o
+     * resumo do cadastro quando ela esta vazia —, e ja teve um mutator com
+     * esse nome que nunca rodava: a apresentacao era gravada sem limpeza.
      */
-    public function setPresentationAttribute(?string $valor): void
+    public function setBioAttribute(?string $valor): void
     {
-        $this->attributes['presentation'] = $this->limparHtmlRico($valor);
+        $this->attributes['bio'] = $this->limparHtmlRico($valor);
     }
 }

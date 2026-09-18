@@ -30,6 +30,7 @@ use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
 use App\Http\Controllers\EditorImageController;
 use App\Http\Controllers\MemberPanel\AccountController as MemberAccountController;
 use App\Http\Controllers\Panel\ColumnController;
+use App\Http\Controllers\Panel\ColumnistPhotoController;
 use App\Http\Controllers\Panel\ColumnModerationController;
 use App\Http\Controllers\MemberPanel\ProfileController as MemberProfileController;
 use App\Http\Controllers\Portal\ColumnPageController;
@@ -325,6 +326,11 @@ $companyRoutes = function (bool $named = true): void {
         $as(Route::put('colunas/{column}', [ColumnController::class, 'update']), 'empresa.colunas.update');
         $as(Route::delete('colunas/{column}', [ColumnController::class, 'destroy']), 'empresa.colunas.destroy');
 
+        // Foto propria de quem assina. Caminho fora de `colunas/` para nao
+        // cair na rota `colunas/{column}`, que aceitaria "foto" como id.
+        $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'empresa.colunas.foto.update');
+        $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'empresa.colunas.foto.destroy');
+
         $as(Route::get('colaboradores', [CompanyMemberController::class, 'index']), 'empresa.membros.index');
         $as(Route::get('colaboradores/novo', [CompanyMemberController::class, 'create']), 'empresa.membros.create');
         $as(Route::post('colaboradores', [CompanyMemberController::class, 'store']), 'empresa.membros.store');
@@ -364,6 +370,8 @@ $memberRoutes = function (bool $named = true): void {
         $as(Route::get('colunas/{column}/editar', [ColumnController::class, 'edit']), 'membro.colunas.edit');
         $as(Route::put('colunas/{column}', [ColumnController::class, 'update']), 'membro.colunas.update');
         $as(Route::delete('colunas/{column}', [ColumnController::class, 'destroy']), 'membro.colunas.destroy');
+        $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'membro.colunas.foto.update');
+        $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'membro.colunas.foto.destroy');
 
         $as(Route::get('conta', [MemberAccountController::class, 'edit']), 'membro.conta.edit');
         $as(Route::put('conta', [MemberAccountController::class, 'update']), 'membro.conta.update');

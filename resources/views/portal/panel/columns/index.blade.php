@@ -4,6 +4,54 @@
 @section('title', 'Minhas colunas')
 
 @section('content')
+{{--
+    Foto da assinatura. E a mesma que o portal mostra ao lado do nome em cada
+    coluna, na pagina do colunista e na lista de colunistas. Sem foto propria,
+    o portal usa a do cadastro — numa empresa, o logo, que ao lado do nome de
+    uma pessoa ("Rodrigo — DATAHOLDS") nao e o que o leitor espera ver.
+--}}
+@if ($columnist)
+    <x-admin.card class="mb-6" title="Sua foto de colunista"
+                  subtitle="Aparece ao lado do seu nome em todas as suas colunas no portal.">
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <div class="flex shrink-0 flex-col items-center gap-2">
+                <x-admin.avatar :photo="$columnist->photo_path" :initials="$columnist->initials"
+                                size="h-24 w-24" :round="true" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ $columnist->hasCustomPhoto() ? 'Sua foto' : 'Hoje: '.$columnist->fallbackPhotoLabel() }}
+                </span>
+            </div>
+
+            <form method="POST" action="{{ route($rotaBase.'.foto.update') }}" enctype="multipart/form-data"
+                  class="min-w-0 flex-1 space-y-3">
+                @csrf
+                @method('PUT')
+
+                <x-admin.field name="photo"
+                               hint="JPG, PNG ou WEBP, até 3 MB. Prefira uma foto quadrada, com o rosto centralizado — ela é recortada em círculo.">
+                    <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required
+                           class="block w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:file:bg-brand-500/15 dark:file:text-brand-300">
+                </x-admin.field>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <x-admin.button type="submit" variant="primary" icon="image">
+                        {{ $columnist->hasCustomPhoto() ? 'Trocar foto' : 'Enviar foto' }}
+                    </x-admin.button>
+                </div>
+            </form>
+        </div>
+
+        @if ($columnist->hasCustomPhoto())
+            <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+                <x-admin.confirm-form :action="route($rotaBase.'.foto.destroy')"
+                                      message="Remover sua foto? O portal volta a mostrar {{ $columnist->fallbackPhotoLabel() }}.">
+                    Remover minha foto e voltar a usar {{ $columnist->fallbackPhotoLabel() }}
+                </x-admin.confirm-form>
+            </div>
+        @endif
+    </x-admin.card>
+@endif
+
 <x-admin.card :padding="false">
     <x-slot:title>{{ $columns->total() }} {{ $columns->total() === 1 ? 'coluna' : 'colunas' }}</x-slot:title>
     <x-slot:subtitle>Assinadas por <strong>{{ $columnist?->byline }}</strong>. Cada texto passa pela análise da associação antes de ir ao ar.</x-slot:subtitle>

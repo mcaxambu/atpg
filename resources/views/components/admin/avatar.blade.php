@@ -1,6 +1,11 @@
-@props(['photo' => null, 'initials' => '?', 'color' => '#0f4c81', 'size' => 'h-11 w-11', 'contain' => false])
+{{--
+    `round` deixa o avatar em circulo, como o portal mostra o colunista: a
+    previa no painel tem de ter o mesmo recorte do site, senao a pessoa escolhe
+    uma foto que aparece cortada diferente la fora.
+--}}
+@props(['photo' => null, 'initials' => '?', 'color' => '#0f4c81', 'size' => 'h-11 w-11', 'contain' => false, 'round' => false])
 
-<div class="grid shrink-0 place-items-center overflow-hidden rounded-xl text-sm font-semibold text-white {{ $size }}"
+<div class="grid shrink-0 place-items-center overflow-hidden {{ $round ? 'rounded-full' : 'rounded-xl' }} text-sm font-semibold text-white {{ $size }}"
      style="background: {{ $color }}">
     @if ($photo)
         {{-- asset() respeita o forceRootUrl do prefixo /atpg; Storage::url() não. --}}
