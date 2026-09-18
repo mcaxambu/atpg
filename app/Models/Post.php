@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\ModerationStatus;
 use App\Models\Concerns\Moderatable;
-use App\Models\Concerns\RendersMarkdown;
+use App\Models\Concerns\RendersRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +15,7 @@ class Post extends Model
 {
     use HasFactory;
     use Moderatable;
-    use RendersMarkdown;
+    use RendersRichText;
 
     protected $fillable = [
         'title',
@@ -188,6 +188,18 @@ class Post extends Model
         // A conversao mora no trait, junto com a das paginas, vagas e perfis:
         // eram tres copias das mesmas opcoes, e o tratamento de link externo
         // acabou nascendo so numa delas.
-        return $this->renderMarkdown($this->body);
+        return $this->renderRichText($this->body);
+    }
+    /**
+     * Campo escrito no editor do painel: o HTML e limpo na gravacao.
+     *
+     * Fica no model, e nao no FormRequest, porque este campo e gravado
+     * por mais de um caminho (painel da diretoria, painel da empresa,
+     * painel do membro, importacao e seeder) — a trava tem de morar onde
+     * todos passam. Ver App\Models\Concerns\RendersRichText.
+     */
+    public function setBodyAttribute(?string $valor): void
+    {
+        $this->attributes['body'] = $this->limparHtmlRico($valor);
     }
 }

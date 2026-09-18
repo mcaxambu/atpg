@@ -241,22 +241,35 @@
                     const textarea = this.$root.closest('form').querySelector('[name="body"]');
                     if (!textarea || textarea.value.trim()) return;
 
+                    /*
+                        Escapar e obrigatorio: titulo, descricao e nome do site
+                        vem das metatags de OUTRO site, e vao para dentro do
+                        editor como HTML. Sem isto, uma pagina com
+                        `<img onerror=...>` na descricao executaria no painel de
+                        quem so quis colar um link.
+                    */
+                    const escapar = (texto) => String(texto)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;');
+
                     const partes = [];
 
-                    if (dados.description) partes.push(dados.description);
+                    if (dados.description) partes.push(`<p>${escapar(dados.description)}</p>`);
 
                     partes.push(
-                        `> Matéria publicada originalmente em ${dados.site || 'outro veículo'}.`,
-                        `[Ler a matéria completa](${dados.url})`
+                        `<blockquote><p>Matéria publicada originalmente em ${escapar(dados.site || 'outro veículo')}.</p></blockquote>`,
+                        `<p><a href="${escapar(dados.url)}">Ler a matéria completa</a></p>`
                     );
 
-                    const markdown = partes.join('\n\n');
-                    textarea.value = markdown;
+                    const html = partes.join('');
+                    textarea.value = html;
 
-                    // O editor visual ja montou por cima do textarea: sem avisar
-                    // ele, a tela continuaria mostrando o campo vazio.
+                    // O editor ja montou por cima do textarea: sem avisar ele, a
+                    // tela continuaria mostrando o campo vazio.
                     if (textarea.editorInstance) {
-                        textarea.editorInstance.setMarkdown(markdown);
+                        textarea.editorInstance.setContent(html);
                     }
 
                     textarea.dispatchEvent(new Event('input', { bubbles: true }));

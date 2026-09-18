@@ -5,12 +5,18 @@ namespace App\Actions;
 use App\Models\Meeting;
 use App\Models\MeetingMinute;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 /**
- * Monta a ata em Markdown a partir do que foi registrado na reuniao.
+ * Monta a ata a partir do que foi registrado na reuniao.
  *
  * Entrega um rascunho: a ata nasce despublicada, para a associacao revisar o
  * texto antes de liberar para as empresas.
+ *
+ * A montagem continua em Markdown e a conversao para HTML acontece num unico
+ * ponto, no fim. O painel grava HTML desde 17/09/2026, e montar as tags na mao
+ * aqui exigiria reescrever (e retestar) toda a estrutura — inclusive a tabela
+ * de encaminhamentos — sem ganho nenhum.
  */
 class GenerateMinuteFromMeeting
 {
@@ -22,7 +28,7 @@ class GenerateMinuteFromMeeting
             'title' => $reuniao->title,
             'meeting_date' => $reuniao->scheduled_at->toDateString(),
             'summary' => $reuniao->type->label().' — '.$reuniao->scheduled_at->translatedFormat('d/m/Y'),
-            'body' => $this->markdown($reuniao),
+            'body' => $this->html($reuniao),
             'is_published' => false,
             'uploaded_by' => $autor?->id,
         ]);
@@ -30,6 +36,18 @@ class GenerateMinuteFromMeeting
         $reuniao->update(['meeting_minute_id' => $ata->id]);
 
         return $ata;
+    }
+
+    /**
+     * O mesmo conversor que a ata antiga usa na exibicao, para a ata gerada
+     * hoje sair com a mesma diagramacao das que ja estao publicadas.
+     */
+    private function html(Meeting $reuniao): string
+    {
+        return Str::markdown($this->markdown($reuniao), [
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     private function markdown(Meeting $reuniao): string

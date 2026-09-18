@@ -58,7 +58,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn (Request $request) => PanelRedirect::homeFor($request->user()));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        /*
+         * Erro em JSON so onde quem chama espera JSON.
+         *
+         * Alem da API, entra aqui o envio de imagem do editor de textos: ele e
+         * chamado por `fetch` de dentro do painel, e sem isto uma sessao
+         * expirada ou um arquivo recusado devolviam a PAGINA de login ou de
+         * erro. O editor nao tem como ler isso e mostrava "nao foi possivel
+         * enviar" para qualquer causa, escondendo o motivo real de quem esta
+         * escrevendo. O caminho aparece duas vezes porque o portal tambem
+         * responde sob o prefixo /atpg.
+         */
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*')
+                || $request->is('painel/editor/*')
+                || $request->is('atpg/painel/editor/*'),
         );
     })->create();

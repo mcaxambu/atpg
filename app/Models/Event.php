@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\RendersMarkdown;
+use App\Models\Concerns\RendersRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class Event extends Model
 {
     use HasFactory;
-    use RendersMarkdown;
+    use RendersRichText;
 
     protected $fillable = [
         'title',
@@ -42,12 +42,24 @@ class Event extends Model
 
     public function getRenderedDescriptionAttribute(): string
     {
-        return $this->renderMarkdown($this->description);
+        return $this->renderRichText($this->description);
     }
 
     /** Sem formatacao, para o cartao da agenda. */
     public function getDescriptionExcerptAttribute(): string
     {
-        return $this->plainFromMarkdown($this->description, 220);
+        return $this->plainFromRichText($this->description, 220);
+    }
+    /**
+     * Campo escrito no editor do painel: o HTML e limpo na gravacao.
+     *
+     * Fica no model, e nao no FormRequest, porque este campo e gravado
+     * por mais de um caminho (painel da diretoria, painel da empresa,
+     * painel do membro, importacao e seeder) — a trava tem de morar onde
+     * todos passam. Ver App\Models\Concerns\RendersRichText.
+     */
+    public function setDescriptionAttribute(?string $valor): void
+    {
+        $this->attributes['description'] = $this->limparHtmlRico($valor);
     }
 }

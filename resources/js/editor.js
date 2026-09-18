@@ -1,5 +1,5 @@
 /*
- * Entrypoint do editor visual dos campos longos do painel.
+ * Entrypoint do editor de textos do painel.
  *
  * E um entrypoint separado de proposito, e nao um import dinamico dentro do
  * app.js: o portal tambem roda sob subpasta (/atpg), e o Vite resolve a base
@@ -7,377 +7,229 @@
  * /build/... sem o prefixo e davam 404. Como entrypoint, a URL sai do @vite,
  * que respeita a raiz resolvida em runtime.
  *
- * O editor mostra o texto formatado, mas grava MARKDOWN no textarea original,
- * que continua sendo o campo enviado no formulario. Essa decisao e o que torna
- * a troca de biblioteca barata: nenhum controller, model ou view do portal
- * muda, o conteudo ja publicado continua valendo, o site segue convertendo com
- * o HTML cru escapado, e a ata gerada pelo sistema (que sai em Markdown, com
- * tabela de acoes) continua legivel dos dois lados.
+ * O editor e o TinyMCE 7, o mesmo do paginatv, e os campos guardam HTML. Foi
+ * uma virada consciente: o formato anterior (Markdown) nao sabe expressar
+ * imagem no meio do texto, video incorporado nem alinhamento, entao nenhuma
+ * troca de biblioteca daria esses recursos. O que protege o portal e a limpeza
+ * por lista de permissao no servidor (App\Support\SafeHtml), aplicada na
+ * gravacao E na exibicao — nunca confie no que chega do navegador.
  *
- * A barra de ferramentas e nossa, botao por botao. O editor anterior trazia
- * uma barra pronta cujo menu de titulo abria sozinho ao clicar na area de
- * texto; aqui nao existe menu suspenso nenhum.
+ * O TinyMCE vem do CDN, como no paginatv. A contrapartida e depender de um
+ * script de terceiro no painel; se o CDN falhar, o campo continua sendo um
+ * textarea comum e o formulario segue funcionando (ver `carregarEditor`).
  */
 
-import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import { Placeholder } from '@tiptap/extensions';
-import { TableKit } from '@tiptap/extension-table';
-import { Markdown } from 'tiptap-markdown';
+const TINYMCE = 'https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js';
+const IDIOMA = 'https://cdn.jsdelivr.net/npm/tinymce-i18n@26.9.14/langs7/pt_BR.js';
+
+const MAXIMO_BYTES = 5 * 1024 * 1024;
 
 /*
- * Barra principal, em grupos separados por um tracinho.
+ * Barra igual a do paginatv, que e o padrao que o usuario conhece e aprovou.
  *
- * Titulo aqui e `##` e subtitulo e `###`: o `#` fica reservado para o titulo
- * da propria pagina, que o portal ja imprime fora do corpo do texto. Titulo
- * de nivel mais fundo existe no conteudo antigo e continua sendo preservado na
- * gravacao — so nao tem botao, porque ninguem escrevia assim.
+ * `blocks` e o seletor de paragrafo/titulo; `removeformat` e o botao que salva
+ * quem colou texto do Word com formatacao estranha; `code` mostra o HTML para
+ * quem quiser acertar um detalhe na mao.
  */
-const GRUPOS = [
-    [
-        {
-            rotulo: 'Título',
-            dica: 'Título de seção',
-            acao: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(),
-            ativo: (e) => e.isActive('heading', { level: 2 }),
-        },
-        {
-            rotulo: 'Subtítulo',
-            dica: 'Subtítulo, dentro de uma seção',
-            acao: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(),
-            ativo: (e) => e.isActive('heading', { level: 3 }),
-        },
-    ],
-    [
-        {
-            rotulo: 'N',
-            dica: 'Negrito (Ctrl+B)',
-            classe: 'rich-editor-negrito',
-            acao: (e) => e.chain().focus().toggleBold().run(),
-            ativo: (e) => e.isActive('bold'),
-        },
-        {
-            rotulo: 'I',
-            dica: 'Itálico (Ctrl+I)',
-            classe: 'rich-editor-italico',
-            acao: (e) => e.chain().focus().toggleItalic().run(),
-            ativo: (e) => e.isActive('italic'),
-        },
-        {
-            rotulo: 'S',
-            dica: 'Riscado',
-            classe: 'rich-editor-riscado',
-            acao: (e) => e.chain().focus().toggleStrike().run(),
-            ativo: (e) => e.isActive('strike'),
-        },
-    ],
-    [
-        {
-            rotulo: 'Lista',
-            dica: 'Lista com marcadores',
-            acao: (e) => e.chain().focus().toggleBulletList().run(),
-            ativo: (e) => e.isActive('bulletList'),
-        },
-        {
-            rotulo: 'Numerada',
-            dica: 'Lista numerada',
-            acao: (e) => e.chain().focus().toggleOrderedList().run(),
-            ativo: (e) => e.isActive('orderedList'),
-        },
-    ],
-    [
-        {
-            rotulo: 'Citação',
-            dica: 'Destacar um trecho citado',
-            acao: (e) => e.chain().focus().toggleBlockquote().run(),
-            ativo: (e) => e.isActive('blockquote'),
-        },
-        {
-            rotulo: 'Linha',
-            dica: 'Linha divisória entre assuntos',
-            acao: (e) => e.chain().focus().setHorizontalRule().run(),
-        },
-    ],
-    [
-        {
-            rotulo: 'Link',
-            dica: 'Transformar o texto selecionado em link',
-            nome: 'link',
-            ativo: (e) => e.isActive('link'),
-        },
-        {
-            rotulo: 'Tabela',
-            dica: 'Inserir uma tabela de 3 colunas',
-            acao: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-        },
-    ],
-];
+const BARRA = 'undo redo | blocks | bold italic underline strikethrough'
+    + ' | alignleft aligncenter alignright'
+    + ' | bullist numlist | link image media table'
+    + ' | removeformat code fullscreen';
 
 /*
- * Botoes que so fazem sentido com o cursor dentro de uma tabela. Ficam numa
- * segunda faixa, que aparece e desaparece conforme o cursor: manter "excluir
- * coluna" sempre visivel numa noticia sem tabela e ruido.
+ * Titulos oferecidos.
+ *
+ * Sem `h1`: o titulo de nivel 1 da pagina e o titulo da propria noticia, que o
+ * portal imprime fora do corpo do texto. A limpeza no servidor rebaixa `h1`
+ * para `h2` justamente para nao existirem dois titulos principais.
  */
-const BOTOES_TABELA = [
-    { rotulo: '+ linha', dica: 'Adicionar linha abaixo', acao: (e) => e.chain().focus().addRowAfter().run() },
-    { rotulo: '+ coluna', dica: 'Adicionar coluna à direita', acao: (e) => e.chain().focus().addColumnAfter().run() },
-    { rotulo: '− linha', dica: 'Excluir a linha do cursor', acao: (e) => e.chain().focus().deleteRow().run() },
-    { rotulo: '− coluna', dica: 'Excluir a coluna do cursor', acao: (e) => e.chain().focus().deleteColumn().run() },
-    { rotulo: 'Excluir tabela', dica: 'Excluir a tabela inteira', acao: (e) => e.chain().focus().deleteTable().run() },
-];
+const BLOCOS = 'Parágrafo=p; Título=h2; Subtítulo=h3; Título menor=h4';
 
 /*
- * Altura minima.
+ * Como o texto aparece DENTRO do editor.
+ *
+ * Vale a pena manter parecido com o portal: editor que mostra uma tipografia e
+ * o site que publica outra obriga a pessoa a adivinhar o resultado.
+ */
+const ESTILO_DO_CONTEUDO = `
+    body { font-family: Outfit, system-ui, sans-serif; font-size: 15px; line-height: 1.7; }
+    h2 { font-size: 1.3rem; font-weight: 700; margin: 1.4em 0 .5em; }
+    h3 { font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .4em; }
+    h4 { font-size: 1.05rem; font-weight: 700; margin: 1.1em 0 .4em; }
+    blockquote { margin: 1em 0; padding-left: 14px; border-left: 3px solid #7592ff; }
+    img { max-width: 100%; height: auto; }
+    iframe { max-width: 100%; }
+    table { border-collapse: collapse; width: 100%; }
+    table th, table td { border: 1px solid #d0d5dd; padding: .5rem .625rem; }
+`;
+
+function tokenCsrf() {
+    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+function urlDeEnvio() {
+    return document.querySelector('meta[name="editor-upload-url"]')?.content || '';
+}
+
+/**
+ * Altura minima do campo.
  *
  * O piso nao pode sair so do atributo `rows`: nem todo textarea do painel tem
  * um (varios usam classe do Tailwind para altura), e o calculo caia no minimo,
  * deixando a area curta demais para uma pagina institucional inteira.
- *
- * ATENCAO: este piso vale para a AREA EDITAVEL, nao para a moldura. Com a
- * altura na moldura, um campo vazio desenhava uma caixa alta com poucos pixels
- * clicaveis no topo: clicar no meio nao levava o cursor para o texto, e o que
- * a pessoa digitava ia para o campo focado antes.
  */
 function alturaMinimaDe(textarea) {
     const linhas = Number(textarea.getAttribute('rows') || 0);
 
-    return `${Math.max(320, linhas * 26)}px`;
+    return Math.max(320, linhas * 26);
 }
 
-function criarBotao({ rotulo, dica, classe }) {
-    const botao = document.createElement('button');
-    botao.type = 'button';
-    botao.className = `rich-editor-botao ${classe || ''}`.trim();
-    botao.title = dica || rotulo;
-    botao.textContent = rotulo;
+/** Carrega um script uma unica vez, mesmo com varios campos na pagina. */
+function carregarScript(url) {
+    const existente = document.querySelector(`script[src="${url}"]`);
 
-    /*
-     * O clique nao pode tirar o foco do texto.
-     *
-     * Sem isto, apertar "Negrito" com um trecho selecionado primeiro esvazia a
-     * selecao (o botao recebe o foco) e o formato acaba aplicado no vazio. O
-     * `preventDefault` no mousedown mantem cursor e selecao onde estavam; o
-     * clique em si continua acontecendo normalmente.
-     */
-    botao.addEventListener('mousedown', (evento) => evento.preventDefault());
+    if (existente) {
+        return existente.promessa;
+    }
 
-    return botao;
-}
+    const tag = document.createElement('script');
 
-/*
- * Barra de endereco do link.
- *
- * Fica escondida até alguem pedir, e reaproveita o endereco do link em que o
- * cursor esta — editar um link existente e o caso comum, nao criar um novo. O
- * Enter aplica e o Esc fecha, porque quem escreve texto nao vai no mouse para
- * confirmar um endereco.
- */
-function criarBarraDeLink(editor) {
-    const barra = document.createElement('div');
-    barra.className = 'rich-editor-link';
-    barra.hidden = true;
-
-    const campo = document.createElement('input');
-    campo.type = 'url';
-    campo.placeholder = 'https://…';
-    campo.className = 'rich-editor-link-campo';
-
-    const aplicar = criarBotao({ rotulo: 'Aplicar', dica: 'Aplicar o link' });
-    const remover = criarBotao({ rotulo: 'Remover', dica: 'Remover o link' });
-    const fechar = criarBotao({ rotulo: 'Cancelar', dica: 'Fechar sem alterar' });
-
-    barra.append(campo, aplicar, remover, fechar);
-
-    const esconder = () => {
-        barra.hidden = true;
-        editor.commands.focus();
-    };
-
-    /*
-     * Trecho que estava selecionado quando a barra abriu.
-     *
-     * Guardar e restaurar e obrigatorio: ao tirar o foco do texto para digitar
-     * o endereco, a selecao colapsa, e `extendMarkRange` sem trecho selecionado
-     * nao tem onde aplicar o link — o endereco era aceito e nada acontecia.
-     */
-    let trecho = null;
-
-    const gravar = () => {
-        const endereco = campo.value.trim();
-        const comSelecao = () => {
-            const acao = editor.chain().focus();
-
-            return trecho ? acao.setTextSelection(trecho) : acao;
-        };
-
-        if (endereco === '') {
-            comSelecao().extendMarkRange('link').unsetLink().run();
-        } else {
-            comSelecao().extendMarkRange('link').setLink({ href: endereco }).run();
-        }
-
-        barra.hidden = true;
-    };
-
-    aplicar.addEventListener('click', gravar);
-    fechar.addEventListener('click', esconder);
-    remover.addEventListener('click', () => {
-        campo.value = '';
-        gravar();
+    tag.src = url;
+    tag.referrerPolicy = 'origin';
+    tag.promessa = new Promise((resolve, reject) => {
+        tag.addEventListener('load', resolve);
+        tag.addEventListener('error', () => reject(new Error(`falha ao carregar ${url}`)));
     });
 
-    campo.addEventListener('keydown', (evento) => {
-        if (evento.key === 'Enter') {
-            evento.preventDefault();
-            gravar();
-        }
+    document.head.append(tag);
 
-        if (evento.key === 'Escape') {
-            evento.preventDefault();
-            esconder();
-        }
-    });
-
-    barra.abrir = () => {
-        const { from, to } = editor.state.selection;
-
-        trecho = { from, to };
-        campo.value = editor.getAttributes('link').href || '';
-        barra.hidden = false;
-        campo.focus();
-        campo.select();
-    };
-
-    return barra;
+    return tag.promessa;
 }
 
-function montarBarra(editor, aoTrocarEstado) {
-    const barra = document.createElement('div');
-    barra.className = 'rich-editor-barra';
+function enviarImagem(arquivo, nome) {
+    if (arquivo.size > MAXIMO_BYTES) {
+        return Promise.reject({ message: 'A imagem pode ter no máximo 5 MB.', remove: true });
+    }
 
-    const barraDeLink = criarBarraDeLink(editor);
-    const sincronizar = [];
+    const dados = new FormData();
+    dados.append('image', arquivo, nome);
 
-    GRUPOS.forEach((grupo, indice) => {
-        if (indice > 0) {
-            const separador = document.createElement('span');
-            separador.className = 'rich-editor-separador';
-            separador.setAttribute('aria-hidden', 'true');
-            barra.append(separador);
-        }
+    return fetch(urlDeEnvio(), {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': tokenCsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+            Accept: 'application/json',
+        },
+        body: dados,
+    })
+        .then(async (resposta) => {
+            const corpo = await resposta.json().catch(() => ({}));
 
-        grupo.forEach((item) => {
-            const botao = criarBotao(item);
+            if (! resposta.ok || ! corpo.url) {
+                /*
+                 * A mensagem do servidor e melhor do que qualquer texto
+                 * generico: ela diz se o problema foi tipo de arquivo, tamanho
+                 * ou sessao expirada. O 419 do Laravel nao traz mensagem util,
+                 * daí o texto proprio.
+                 */
+                const erro = resposta.status === 419
+                    ? 'Sua sessão expirou. Abra o painel de novo e repita o envio.'
+                    : (corpo.message || (corpo.errors?.image?.[0]) || 'Não foi possível enviar a imagem.');
 
-            botao.addEventListener('click', () => {
-                if (item.nome === 'link') {
-                    barraDeLink.abrir();
-                } else {
-                    item.acao(editor);
-                }
-
-                aoTrocarEstado();
-            });
-
-            if (item.ativo) {
-                sincronizar.push(() => {
-                    const ligado = item.ativo(editor);
-                    botao.classList.toggle('rich-editor-ligado', ligado);
-                    botao.setAttribute('aria-pressed', ligado ? 'true' : 'false');
-                });
+                return Promise.reject({ message: erro, remove: true });
             }
 
-            barra.append(botao);
+            return corpo.url;
         });
-    });
-
-    const faixaTabela = document.createElement('div');
-    faixaTabela.className = 'rich-editor-barra rich-editor-barra-tabela';
-    faixaTabela.hidden = true;
-
-    BOTOES_TABELA.forEach((item) => {
-        const botao = criarBotao(item);
-        botao.addEventListener('click', () => {
-            item.acao(editor);
-            aoTrocarEstado();
-        });
-        faixaTabela.append(botao);
-    });
-
-    sincronizar.push(() => {
-        faixaTabela.hidden = ! editor.isActive('table');
-    });
-
-    return { barra, faixaTabela, barraDeLink, sincronizar };
 }
 
-function montar(textarea) {
-    const moldura = document.createElement('div');
-    moldura.className = 'rich-editor';
-    moldura.style.setProperty('--rich-editor-altura', alturaMinimaDe(textarea));
+/** Janela do sistema para escolher o arquivo, usada pelo botao de imagem. */
+function escolherArquivo(callback) {
+    const campo = document.createElement('input');
 
-    const area = document.createElement('div');
-    area.className = 'rich-editor-area';
+    campo.type = 'file';
+    campo.accept = 'image/jpeg,image/png,image/gif,image/webp';
 
-    textarea.parentNode.insertBefore(moldura, textarea);
+    campo.addEventListener('change', () => {
+        const arquivo = campo.files && campo.files[0];
 
-    // O textarea segue no formulario: e ele que o Laravel recebe.
-    textarea.classList.add('rich-editor-source');
-    textarea.setAttribute('tabindex', '-1');
-    textarea.setAttribute('aria-hidden', 'true');
+        if (! arquivo) {
+            return;
+        }
 
-    const editor = new Editor({
-        element: area,
-        content: textarea.value || '',
-        extensions: [
-            StarterKit.configure({
-                // O link entra pela barra, com endereco conferido; abrir no
-                // clique dentro do editor so tira a pessoa do formulario.
-                link: { openOnClick: false, autolink: true },
-            }),
-            TableKit.configure({ table: { resizable: false } }),
-            Placeholder.configure({
-                placeholder: textarea.getAttribute('placeholder') || 'Escreva aqui…',
-            }),
-            Markdown.configure({
-                // `linkify: false` porque o autolink do StarterKit ja cuida
-                // disso na digitacao; ligar os dois duplica marcacao no texto.
-                linkify: false,
-                breaks: false,
-                transformPastedText: true,
-            }),
-        ],
-        onUpdate: () => {
-            textarea.value = editor.storage.markdown.getMarkdown();
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            moldura.classList.remove('rich-editor-invalido');
-        },
+        enviarImagem(arquivo, arquivo.name)
+            .then((url) => callback(url, { title: arquivo.name, alt: arquivo.name }))
+            .catch((erro) => window.alert(erro.message || 'Não foi possível enviar a imagem.'));
     });
 
-    const { barra, faixaTabela, barraDeLink, sincronizar } = montarBarra(editor, () => {
-        sincronizar.forEach((f) => f());
-    });
+    campo.click();
+}
 
-    // A barra de endereco do link TEM de entrar no documento: sem isso o
-    // `focus()` no campo nao acontece (elemento solto nao recebe foco) e o
-    // endereco digitado cai dentro do texto, por cima da selecao.
-    moldura.append(barra, barraDeLink, faixaTabela, area);
-    editor.on('selectionUpdate', () => sincronizar.forEach((f) => f()));
-    editor.on('transaction', () => sincronizar.forEach((f) => f()));
-    sincronizar.forEach((f) => f());
+function configuracao(textarea) {
+    const escuro = document.documentElement.classList.contains('dark');
+
+    return {
+        target: textarea,
+        license_key: 'gpl',
+        language: 'pt_BR',
+        language_url: IDIOMA,
+        skin: escuro ? 'oxide-dark' : 'oxide',
+        content_css: escuro ? 'dark' : 'default',
+        menubar: false,
+        branding: false,
+        promotion: false,
+        // O endereco gravado no texto fica completo: mexer nisso faz o TinyMCE
+        // reescrever links e quebrar o caminho sob o prefixo /atpg.
+        convert_urls: false,
+        plugins: 'autoresize code fullscreen image link lists media table wordcount',
+        toolbar: BARRA,
+        block_formats: BLOCOS,
+        min_height: alturaMinimaDe(textarea),
+        autoresize_bottom_margin: 24,
+        content_style: ESTILO_DO_CONTEUDO,
+        placeholder: textarea.getAttribute('placeholder') || '',
+        automatic_uploads: true,
+        paste_data_images: true,
+        block_unsupported_drop: true,
+        images_file_types: 'jpeg,jpg,png,gif,webp',
+        image_title: true,
+        file_picker_types: 'image',
+        media_live_embeds: true,
+        media_alt_source: false,
+        media_poster: false,
+        images_upload_handler: (info) => enviarImagem(info.blob(), info.filename()),
+        file_picker_callback: (callback) => escolherArquivo(callback),
+        setup: (editor) => prepararCampo(editor, textarea),
+    };
+}
+
+/**
+ * Liga o editor ao formulario do Laravel.
+ *
+ * O TinyMCE só copia o conteudo para o textarea no envio. Isso nao basta aqui:
+ * a validacao de campo obrigatorio e a busca por link do formulario de noticia
+ * leem o textarea direto, e liam sempre vazio.
+ */
+function prepararCampo(editor, textarea) {
+    // Lista larga de eventos de proposito: `change` so dispara ao criar um
+    // ponto de desfazer, e o botao da barra, o colar e o desfazer/refazer
+    // mudam o texto sem passar por `keyup`.
+    editor.on('change input keyup undo redo ExecCommand SetContent', () => {
+        editor.save();
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        editor.getContainer()?.classList.remove('rich-editor-invalido');
+    });
 
     /*
-     * Deixa a instancia acessivel pelo proprio textarea, com a mesma API que a
-     * pagina da noticia usa (`setMarkdown`).
-     *
-     * Quem preenche o campo por fora — a busca por link, por exemplo — escreve
-     * no textarea, que agora esta escondido. Sem este gancho, o valor entrava
-     * no formulario mas a tela continuava mostrando o editor vazio.
+     * Gancho para quem preenche o campo por fora — a busca por link da noticia
+     * escreve no textarea, que agora esta escondido; sem avisar o editor, o
+     * valor entrava no formulario e a tela continuava mostrando a caixa vazia.
      */
     textarea.editorInstance = {
         editor,
-        setMarkdown: (texto) => editor.commands.setContent(texto || ''),
-        getMarkdown: () => editor.storage.markdown.getMarkdown(),
+        setContent: (html) => editor.setContent(html || ''),
+        getContent: () => editor.getContent(),
     };
 
     // Campo obrigatorio escondido trava o envio com "campo nao focavel".
@@ -386,18 +238,44 @@ function montar(textarea) {
         textarea.removeAttribute('required');
 
         textarea.form?.addEventListener('submit', (evento) => {
-            if (textarea.value.trim() === '') {
-                evento.preventDefault();
-                moldura.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                editor.commands.focus();
-                moldura.classList.add('rich-editor-invalido');
+            if (editor.getContent({ format: 'text' }).trim() !== '') {
+                return;
             }
+
+            evento.preventDefault();
+            editor.getContainer()?.classList.add('rich-editor-invalido');
+            editor.getContainer()?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            editor.focus();
         });
     }
 }
 
-function iniciar() {
-    document.querySelectorAll('textarea[data-editor]').forEach(montar);
+async function iniciar() {
+    const campos = document.querySelectorAll('textarea[data-editor]');
+
+    if (campos.length === 0) {
+        return;
+    }
+
+    try {
+        await carregarScript(TINYMCE);
+    } catch (erro) {
+        /*
+         * CDN fora do ar nao pode derrubar o painel: sem o editor, o campo
+         * continua sendo um textarea comum. Quem estiver editando um texto que
+         * ja tem HTML vai ver as tags, o que e feio mas recuperavel — bem
+         * melhor do que um formulario que nao salva.
+         */
+        console.error('Editor de textos indisponível:', erro);
+
+        return;
+    }
+
+    // O pacote de idioma pt_BR deixa este botao em ingles. `addI18n` so
+    // acrescenta chaves, entao nada do resto da traducao oficial e perdido.
+    window.tinymce.addI18n('pt_BR', { Redo: 'Refazer' });
+
+    campos.forEach((textarea) => window.tinymce.init(configuracao(textarea)));
 }
 
 if (document.readyState === 'loading') {

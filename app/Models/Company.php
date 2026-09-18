@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\ModerationStatus;
 use App\Models\Concerns\HasUniqueSlug;
 use App\Models\Concerns\Moderatable;
-use App\Models\Concerns\RendersMarkdown;
+use App\Models\Concerns\RendersRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +18,7 @@ class Company extends Model
     use HasFactory;
     use HasUniqueSlug;
     use Moderatable;
-    use RendersMarkdown;
+    use RendersRichText;
     use SoftDeletes;
 
     protected $fillable = [
@@ -75,13 +75,13 @@ class Company extends Model
 
     public function getRenderedDescriptionAttribute(): string
     {
-        return $this->renderMarkdown($this->description);
+        return $this->renderRichText($this->description);
     }
 
     /** Sem formatacao, para o cartao do diretorio. */
     public function getDescriptionExcerptAttribute(): string
     {
-        return $this->plainFromMarkdown($this->description, 180);
+        return $this->plainFromRichText($this->description, 180);
     }
 
     /**
@@ -119,5 +119,17 @@ class Company extends Model
         return str($this->name)->explode(' ')->filter()->take(2)
             ->map(fn (string $part) => str($part)->substr(0, 1)->upper()->toString())
             ->implode('');
+    }
+    /**
+     * Campo escrito no editor do painel: o HTML e limpo na gravacao.
+     *
+     * Fica no model, e nao no FormRequest, porque este campo e gravado
+     * por mais de um caminho (painel da diretoria, painel da empresa,
+     * painel do membro, importacao e seeder) — a trava tem de morar onde
+     * todos passam. Ver App\Models\Concerns\RendersRichText.
+     */
+    public function setDescriptionAttribute(?string $valor): void
+    {
+        $this->attributes['description'] = $this->limparHtmlRico($valor);
     }
 }

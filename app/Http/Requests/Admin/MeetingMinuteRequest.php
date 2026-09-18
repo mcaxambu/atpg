@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Models\MeetingMinute;
 use App\Support\NotionMarkdown;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class MeetingMinuteRequest extends FormRequest
@@ -69,24 +70,34 @@ class MeetingMinuteRequest extends FormRequest
     }
 
     /**
-     * Dados prontos para persistir, com o Markdown já limpo.
+     * Dados prontos para persistir.
+     *
+     * São duas origens com formatos diferentes: o arquivo .md do Notion chega
+     * em Markdown e é convertido aqui, enquanto o campo do formulário já vem em
+     * HTML do editor do painel. Passar o HTML do editor pela limpeza de Notion
+     * destruiria a formatação — ela é escrita para Markdown.
+     *
+     * O HTML não é limpo aqui de propósito: isso mora no model, que é por onde
+     * todos os caminhos de gravação passam (ver RendersRichText).
      */
     public function minuteData(): array
     {
         $data = $this->safe()->except(['file', 'markdown_file', 'remove_file']);
         $data['is_published'] = $this->boolean('is_published');
 
-        // Arquivo .md enviado tem precedência sobre o que estiver no textarea:
+        // Arquivo .md enviado tem precedência sobre o que estiver no campo:
         // quem anexou um arquivo espera que ele seja o conteúdo.
-        $bruto = $this->hasFile('markdown_file')
-            ? file_get_contents($this->file('markdown_file')->getRealPath())
-            : ($data['body'] ?? null);
+        if ($this->hasFile('markdown_file')) {
+            $limpo = NotionMarkdown::clean(
+                file_get_contents($this->file('markdown_file')->getRealPath())
+            );
 
-        if ($this->hasFile('markdown_file') || array_key_exists('body', $data)) {
-            $limpo = NotionMarkdown::clean($bruto);
-
-            $data['body'] = $limpo['body'];
             $this->imagensRemovidas = $limpo['imagens_removidas'];
+
+            $data['body'] = Str::markdown($limpo['body'], [
+                'html_input' => 'escape',
+                'allow_unsafe_links' => false,
+            ]);
         }
 
         return $data;

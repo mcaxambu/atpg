@@ -72,8 +72,11 @@ class NotionMarkdownTest extends TestCase
         // O Notion repete o titulo como H1; a tela de leitura ja o exibe.
         $ata = $this->enviarExport();
 
-        $this->assertStringNotContainsString('# Assembleia Geral Ordinária', $ata->body);
-        $this->assertStringStartsWith('**Data:**', $ata->body);
+        $this->assertStringNotContainsString('Assembleia Geral Ordinária', $ata->body);
+
+        // O arquivo do Notion chega em Markdown e e convertido na importacao:
+        // o painel guarda HTML desde 17/09/2026.
+        $this->assertStringStartsWith('<p><strong>Data:</strong>', $ata->body);
     }
 
     #[Test]

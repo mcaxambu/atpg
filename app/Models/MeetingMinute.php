@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RendersRichText;
+use App\Support\SafeHtml;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Concerns\RendersMarkdown;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 class MeetingMinute extends Model
 {
     use HasFactory;
-    use RendersMarkdown;
+    use RendersRichText;
     use SoftDeletes;
 
     /** Disco privado: o PDF nunca fica alcancavel por URL direta. */
@@ -88,13 +89,20 @@ class MeetingMinute extends Model
             return '';
         }
 
-        // Opcoes proprias de proposito: a ata NAO usa soft_break como <br>, e
-        // trocar isso mudaria a diagramacao das atas ja publicadas. Só o
-        // tratamento de link externo e compartilhado.
-        return $this->abrirLinksExternosEmNovaAba(Str::markdown($this->body, [
-            'html_input' => 'escape',
-            'allow_unsafe_links' => false,
-        ]));
+        // Ata escrita no editor novo ja vem em HTML; o caminho de Markdown
+        // continua para a ata antiga e para a importada do Notion.
+        //
+        // Opcoes proprias de proposito nesse caminho: a ata NAO usa soft_break
+        // como <br>, e trocar isso mudaria a diagramacao das atas ja
+        // publicadas. Só o tratamento de link externo e compartilhado.
+        $html = self::pareceHtml($this->body)
+            ? SafeHtml::limpar($this->body)
+            : Str::markdown($this->body, [
+                'html_input' => 'escape',
+                'allow_unsafe_links' => false,
+            ]);
+
+        return $this->abrirLinksExternosEmNovaAba($html);
     }
 
     /**
@@ -116,5 +124,17 @@ class MeetingMinute extends Model
         return $bytes >= 1048576
             ? number_format($bytes / 1048576, 1, ',', '.').' MB'
             : number_format($bytes / 1024, 0, ',', '.').' KB';
+    }
+    /**
+     * Campo escrito no editor do painel: o HTML e limpo na gravacao.
+     *
+     * Fica no model, e nao no FormRequest, porque este campo e gravado
+     * por mais de um caminho (painel da diretoria, painel da empresa,
+     * painel do membro, importacao e seeder) — a trava tem de morar onde
+     * todos passam. Ver App\Models\Concerns\RendersRichText.
+     */
+    public function setBodyAttribute(?string $valor): void
+    {
+        $this->attributes['body'] = $this->limparHtmlRico($valor);
     }
 }

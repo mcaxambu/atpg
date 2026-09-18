@@ -222,9 +222,15 @@ class MeetingMinuteTest extends TestCase
 
         $ata = MeetingMinute::first();
 
+        // O arquivo chega em Markdown e e convertido na importacao: o painel
+        // guarda HTML desde 17/09/2026, e a ata tem de abrir formatada no
+        // editor, nao com a marcacao a mostra.
+        $this->assertStringStartsWith('<ul>', $ata->body);
+        $this->assertStringContainsString('<li>Item um</li>', $ata->body);
+
         // O H1 inicial e descartado: no export do Notion ele e o titulo da
         // pagina, que a tela de leitura ja mostra acima do conteudo.
-        $this->assertStringStartsWith('- Item um', $ata->body);
+        $this->assertStringNotContainsString('Assembleia', $ata->body);
         $this->assertStringNotContainsString("\r", $ata->body);
         $this->assertStringNotContainsString("\xEF\xBB\xBF", $ata->body);
     }
@@ -259,14 +265,20 @@ class MeetingMinuteTest extends TestCase
 
         $resposta = $this->actingAs($user)->get(route('empresa.atas.show', $ata->id))->assertOk();
 
-        // O que importa e a marcacao estar inerte, nao a string sumir: um
-        // "onerror=alert" escapado aparece no fonte como texto e e inofensivo.
-        // Uma conta de administrador comprometida nao pode virar XSS
-        // armazenado para todos os associados.
-        $resposta->assertSee('&lt;script&gt;', false);
-        $resposta->assertSee('&lt;img src=x', false);
+        /*
+            Desde a virada para HTML a marcacao perigosa nao e escapada: ela e
+            RETIRADA na gravacao, pela lista de permissao (App\Support\SafeHtml)
+            — e retirada de novo na exibicao. Uma conta de administrador
+            comprometida nao pode virar XSS armazenado para todos os associados.
+        */
+        $this->assertStringNotContainsString('script', $ata->fresh()->body);
+
         $resposta->assertDontSee('<script>alert', false);
         $resposta->assertDontSee('<img src=x', false);
+        $resposta->assertDontSee('onerror', false);
+
+        // O texto em volta sobrevive: limpar formatacao nao pode apagar a frase.
+        $resposta->assertSee('Texto', false);
     }
 
     #[Test]

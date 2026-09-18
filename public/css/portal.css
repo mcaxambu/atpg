@@ -4088,3 +4088,84 @@ h3,
         font-size: 1.4rem;
     }
 }
+
+/* =========================================================================
+   Conteudo escrito no editor do painel: imagem, video e alinhamento.
+
+   Desde 17/09/2026 os campos longos guardam HTML, e o editor passou a permitir
+   imagem no meio do texto, video do YouTube e alinhamento. As regras abaixo
+   valem para os dois blocos de conteudo do portal: `.post-content` (noticia e
+   coluna) e `.rich-text` (pagina institucional, vaga, perfil de empresa e de
+   membro). O que o servidor deixa passar esta em App\Support\SafeHtml.
+   ========================================================================= */
+
+/* Video incorporado: proporcao 16:9 e largura da coluna de texto.
+
+   O TinyMCE grava `width`/`height` fixos no iframe (560x315). Sem isto, num
+   celular o video vazaria para fora da tela e a pagina rolaria na horizontal. */
+.post-content iframe,
+.rich-text iframe {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    margin: 1.8em 0;
+    border: 0;
+    border-radius: 8px;
+    background: #0f1b2b;
+}
+
+/* Imagem dentro do texto nos blocos que ainda nao tinham regra. */
+.rich-text img {
+    max-width: 100%;
+    height: auto;
+    margin: 1.6em 0;
+    border-radius: 8px;
+}
+
+.post-content figure,
+.rich-text figure {
+    margin: 1.8em 0;
+}
+
+.post-content figcaption,
+.rich-text figcaption {
+    margin-top: .5em;
+    color: var(--muted);
+    font-size: .92rem;
+    text-align: center;
+}
+
+/* Tabela larga rola dentro do proprio bloco; a pagina nunca rola na horizontal. */
+.rich-text table {
+    display: block;
+    max-width: 100%;
+    margin: 1.6em 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+
+.rich-text th,
+.rich-text td {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+}
+
+.rich-text th {
+    background: #f4f7fb;
+    font-weight: 900;
+}
+
+/* Imagem alinhada pelo editor: o alinhamento vem no paragrafo que a contem,
+   entao a imagem precisa deixar de ser bloco de largura total para obedecer. */
+.post-content p[style*="text-align: center"] img,
+.rich-text p[style*="text-align: center"] img,
+.post-content p[style*="text-align: right"] img,
+.rich-text p[style*="text-align: right"] img {
+    display: inline-block;
+    margin-left: 0;
+    margin-right: 0;
+}

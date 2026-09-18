@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\RendersMarkdown;
+use App\Models\Concerns\RendersRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class CmsPage extends Model
 {
     use HasFactory;
-    use RendersMarkdown;
+    use RendersRichText;
 
     protected $fillable = [
         'title',
@@ -36,12 +36,24 @@ class CmsPage extends Model
 
     public function getExcerptTextAttribute(): string
     {
-        return $this->excerpt ?: $this->plainFromMarkdown($this->body, 160);
+        return $this->excerpt ?: $this->plainFromRichText($this->body, 160);
     }
 
     /** Corpo da pagina em HTML, a partir do Markdown gravado pelo editor. */
     public function getRenderedBodyAttribute(): string
     {
-        return $this->renderMarkdown($this->body);
+        return $this->renderRichText($this->body);
+    }
+    /**
+     * Campo escrito no editor do painel: o HTML e limpo na gravacao.
+     *
+     * Fica no model, e nao no FormRequest, porque este campo e gravado
+     * por mais de um caminho (painel da diretoria, painel da empresa,
+     * painel do membro, importacao e seeder) — a trava tem de morar onde
+     * todos passam. Ver App\Models\Concerns\RendersRichText.
+     */
+    public function setBodyAttribute(?string $valor): void
+    {
+        $this->attributes['body'] = $this->limparHtmlRico($valor);
     }
 }

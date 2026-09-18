@@ -27,6 +27,7 @@ use App\Http\Controllers\Company\MeetingController as CompanyMeetingController;
 use App\Http\Controllers\Company\MeetingMinuteController as CompanyMeetingMinuteController;
 use App\Http\Controllers\Company\MemberController as CompanyMemberController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
+use App\Http\Controllers\EditorImageController;
 use App\Http\Controllers\MemberPanel\AccountController as MemberAccountController;
 use App\Http\Controllers\Panel\ColumnController;
 use App\Http\Controllers\Panel\ColumnModerationController;
@@ -383,8 +384,26 @@ $passwordRoutes = function (bool $named = true): void {
     });
 };
 
+/*
+ * Envio de imagem de dentro do editor de textos.
+ *
+ * Fica fora dos grupos de papel porque os tres paineis usam o mesmo editor:
+ * diretoria escreve noticia, empresa escreve vaga e coluna, membro escreve
+ * coluna. Só sessao valida e exigida, com limite de chamadas para o campo de
+ * texto nao virar hospedagem de arquivos.
+ */
+$editorRoutes = function (bool $named = true): void {
+    $rota = Route::post('painel/editor/imagem', EditorImageController::class)
+        ->middleware(['auth', 'throttle:60,1']);
+
+    $rota->name($named ? 'editor.imagem' : Str::random(16));
+};
+
 $portalRoutes();
 Route::prefix('atpg')->group(fn () => $portalRoutes(false));
+
+$editorRoutes();
+Route::prefix('atpg')->group(fn () => $editorRoutes(false));
 
 $passwordRoutes();
 Route::prefix('atpg')->group(fn () => $passwordRoutes(false));
