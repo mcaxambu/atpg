@@ -92,7 +92,8 @@
         @if ($company->description)
             <div class="mt-6 border-t border-gray-100 pt-5 dark:border-gray-800">
                 <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Descrição</dt>
-                <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300">{{ $company->description }}</p>
+                {{-- Texto em HTML: exibido formatado, como sai no portal. --}}
+                <div class="prose-admin mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{!! $company->rendered_description !!}</div>
             </div>
         @endif
     </x-admin.card>

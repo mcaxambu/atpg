@@ -26,7 +26,8 @@ class MemberResource extends JsonResource
             'cargo' => $this->role,
             'cidade' => $this->city,
             'anos_experiencia' => $this->experience_years,
-            'resumo' => $this->summary,
+            // Texto puro: o campo guarda HTML desde a virada do editor.
+            'resumo' => $this->summary_plain,
             'destaque' => $this->is_featured,
             'foto' => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
             'avatar' => [

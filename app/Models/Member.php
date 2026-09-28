@@ -126,6 +126,12 @@ class Member extends Model
         return $this->plainFromRichText($this->summary, 180);
     }
 
+    /** Resumo inteiro, sem marcacao — e o que a API publica entrega. */
+    public function getSummaryPlainAttribute(): string
+    {
+        return $this->plainFromRichText($this->summary, null);
+    }
+
     public function isPubliclyVisible(): bool
     {
         return $this->isVisible() && (! $this->company_id || (bool) $this->company?->isVisible());

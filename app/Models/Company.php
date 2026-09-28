@@ -85,6 +85,17 @@ class Company extends Model
     }
 
     /**
+     * Descricao inteira, sem marcacao — e o que a API publica entrega.
+     *
+     * Quem consome a API monta a propria tela e nao tem como saber o que e
+     * seguro exibir do nosso HTML; texto puro serve a qualquer uso.
+     */
+    public function getDescriptionPlainAttribute(): string
+    {
+        return $this->plainFromRichText($this->description, null);
+    }
+
+    /**
      * Responsavel com acesso ao painel da empresa.
      */
     public function accessUser(): HasOne

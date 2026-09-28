@@ -9,7 +9,13 @@
     <div>
         <h3>{{ $company->name }}</h3>
         <span class="segment">{{ $company->segment }}</span>
-        <p>{{ $company->description }}</p>
+        {{--
+            `description_excerpt` e nao `description`: a descricao e guardada em
+            HTML desde a virada do editor, e impressa crua aqui o cartao mostrava
+            as tags como texto ("<p>Consultoria em..."). O resumo ja vem sem
+            marcacao e cortado no tamanho do cartao.
+        --}}
+        <p>{{ $company->description_excerpt }}</p>
         <div class="company-meta">
             <span>{{ $company->city }}</span>
             <span>{{ $company->members_count }} membros vinculados</span>

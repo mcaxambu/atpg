@@ -122,14 +122,17 @@ trait RendersRichText
      * Versao sem formatacao, para resumos e listagens: renderiza e tira as
      * tags, senao o cartao mostraria a marcacao do texto.
      */
-    protected function plainFromRichText(?string $texto, int $limite = 180): string
+    protected function plainFromRichText(?string $texto, ?int $limite = 180): string
     {
         if (blank($texto)) {
             return '';
         }
 
-        $semTags = strip_tags($this->renderRichText($texto));
+        $semTags = trim(html_entity_decode(strip_tags($this->renderRichText($texto)), ENT_QUOTES));
 
-        return Str::limit(trim(html_entity_decode($semTags, ENT_QUOTES)), $limite);
+        // `null` devolve o texto inteiro: serve para quem consome o conteudo
+        // fora do portal (a API publica), onde cortar em 180 caracteres
+        // entregaria a descricao pela metade.
+        return $limite === null ? $semTags : Str::limit($semTags, $limite);
     }
 }

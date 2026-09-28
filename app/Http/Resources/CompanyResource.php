@@ -19,7 +19,9 @@ class CompanyResource extends JsonResource
             'razao_social' => $this->legal_name,
             'cnpj' => $this->cnpj,
             'segmento' => $this->segment,
-            'descricao' => $this->description,
+            // Texto puro: o campo guarda HTML desde a virada do editor, e quem
+            // consome a API imprimiria as tags na propria tela.
+            'descricao' => $this->description_plain,
             'cidade' => $this->city,
             'estado' => $this->state,
             'bairro' => $this->neighborhood,
