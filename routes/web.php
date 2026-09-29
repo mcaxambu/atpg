@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\MeetingMinuteController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ProspectController;
+use App\Http\Controllers\Admin\ProspectInteractionController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SpecialtyController;
 use App\Http\Controllers\Admin\UserController;
@@ -155,6 +157,19 @@ $adminRoutes = function (bool $named = true): void {
         $as(Route::put('perfil/senha', [ProfileController::class, 'updatePassword']), 'admin.profile.password');
 
         // ----- Empresas: rotas especificas antes do resource -----
+        // ----- Funil de novos associados -----
+        Route::middleware('module:crm')->group(function () use ($as) {
+            $as(Route::get('novos-associados', [ProspectController::class, 'index']), 'admin.crm.index');
+            $as(Route::get('novos-associados/novo', [ProspectController::class, 'create']), 'admin.crm.create');
+            $as(Route::post('novos-associados', [ProspectController::class, 'store']), 'admin.crm.store');
+            $as(Route::get('novos-associados/{prospect}', [ProspectController::class, 'show']), 'admin.crm.show');
+            $as(Route::get('novos-associados/{prospect}/editar', [ProspectController::class, 'edit']), 'admin.crm.edit');
+            $as(Route::put('novos-associados/{prospect}', [ProspectController::class, 'update']), 'admin.crm.update');
+            $as(Route::delete('novos-associados/{prospect}', [ProspectController::class, 'destroy']), 'admin.crm.destroy');
+            $as(Route::patch('novos-associados/{prospect}/etapa', [ProspectController::class, 'stage']), 'admin.crm.stage');
+            $as(Route::post('novos-associados/{prospect}/contatos', [ProspectInteractionController::class, 'store']), 'admin.crm.interactions.store');
+        });
+
         Route::middleware('module:companies')->group(function () use ($as, $resource) {
             $as(Route::get('empresas-pendentes', [CompanyController::class, 'pending']), 'admin.companies.pending');
             $as(Route::get('empresas/lixeira', [CompanyController::class, 'trash']), 'admin.companies.trash');

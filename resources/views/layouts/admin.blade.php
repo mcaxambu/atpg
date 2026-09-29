@@ -6,10 +6,15 @@
     $pendingJobs = \App\Models\JobOpening::pending()->count();
     $pendingColumns = \App\Models\Post::columns()->pending()->count();
 
+    // Atrasado no funil aparece como aviso no menu: e a unica coisa do CRM
+    // que precisa puxar a atencao sem a pessoa abrir a tela.
+    $prospectosAtrasados = \App\Models\Prospect::atrasados()->count();
+
     $isCms = request()->routeIs('admin.cms.*');
 
     $mainMenu = [
         ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')],
+        ['label' => 'Novos associados', 'module' => 'crm', 'icon' => 'handshake', 'route' => route('admin.crm.index'), 'active' => request()->routeIs('admin.crm.*'), 'badge' => $prospectosAtrasados],
         ['label' => 'Membros', 'module' => 'members', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
         ['label' => 'Membros pendentes', 'module' => 'members', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
         ['label' => 'Empresas', 'module' => 'companies', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],

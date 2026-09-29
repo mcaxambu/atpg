@@ -10,6 +10,7 @@ namespace App\Enums;
  */
 enum AdminModule: string
 {
+    case Crm = 'crm';
     case Members = 'members';
     case Companies = 'companies';
     case Jobs = 'jobs';
@@ -23,6 +24,7 @@ enum AdminModule: string
     public function label(): string
     {
         return match ($this) {
+            self::Crm => 'Novos associados',
             self::Members => 'Membros',
             self::Companies => 'Empresas',
             self::Jobs => 'Vagas',
@@ -38,6 +40,7 @@ enum AdminModule: string
     public function description(): string
     {
         return match ($this) {
+            self::Crm => 'Funil de quem está sendo convidado a entrar, com próximo passo e histórico.',
             self::Members => 'Cadastro, aprovação e lixeira de membros.',
             self::Companies => 'Cadastro, aprovação, convites e lixeira de empresas.',
             self::Jobs => 'Aprovação das vagas publicadas pelas empresas.',
