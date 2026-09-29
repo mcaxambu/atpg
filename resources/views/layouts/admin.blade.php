@@ -14,7 +14,8 @@
 
     $mainMenu = [
         ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')],
-        ['label' => 'Novos associados', 'module' => 'crm', 'icon' => 'handshake', 'route' => route('admin.crm.index'), 'active' => request()->routeIs('admin.crm.*'), 'badge' => $prospectosAtrasados],
+        ['label' => 'Novos associados', 'module' => 'crm', 'icon' => 'handshake', 'route' => route('admin.crm.index'), 'active' => request()->routeIs('admin.crm.index') || request()->routeIs('admin.crm.show') || request()->routeIs('admin.crm.create') || request()->routeIs('admin.crm.edit'), 'badge' => $prospectosAtrasados],
+        ['label' => 'Acompanhamento', 'module' => 'crm', 'icon' => 'check', 'route' => route('admin.crm.onboarding'), 'active' => request()->routeIs('admin.crm.onboarding')],
         ['label' => 'Membros', 'module' => 'members', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
         ['label' => 'Membros pendentes', 'module' => 'members', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
         ['label' => 'Empresas', 'module' => 'companies', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],

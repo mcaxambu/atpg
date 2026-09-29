@@ -69,6 +69,8 @@
 
                 <form class="company-form" method="post" action="{{ route('companies.register.store') }}" enctype="multipart/form-data">
                     @csrf
+                    {{-- Convite: liga este cadastro ao prospecto que convidou. --}}
+                    <input type="hidden" name="convite" value="{{ old('convite', $convite ?? '') }}">
                     @include('portal.partials.form-guard')
                     <div class="company-form-card">
                         <div class="form-section-title">

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\MeetingController;
 use App\Http\Controllers\Admin\MeetingMinuteController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ProspectController;
 use App\Http\Controllers\Admin\ProspectInteractionController;
@@ -161,6 +162,12 @@ $adminRoutes = function (bool $named = true): void {
         Route::middleware('module:crm')->group(function () use ($as) {
             $as(Route::get('novos-associados', [ProspectController::class, 'index']), 'admin.crm.index');
             $as(Route::get('novos-associados/novo', [ProspectController::class, 'create']), 'admin.crm.create');
+
+            // Acompanhamento de quem ja entrou. Registrado ANTES da rota
+            // `novos-associados/{prospect}`: depois dela, "acompanhamento"
+            // seria lido como id de prospecto e daria 404.
+            $as(Route::get('novos-associados/acompanhamento', [OnboardingController::class, 'index']), 'admin.crm.onboarding');
+            $as(Route::post('novos-associados/acompanhamento/lembrete', [OnboardingController::class, 'remind']), 'admin.crm.onboarding.remind');
             $as(Route::post('novos-associados', [ProspectController::class, 'store']), 'admin.crm.store');
             $as(Route::get('novos-associados/{prospect}', [ProspectController::class, 'show']), 'admin.crm.show');
             $as(Route::get('novos-associados/{prospect}/editar', [ProspectController::class, 'edit']), 'admin.crm.edit');
@@ -168,6 +175,7 @@ $adminRoutes = function (bool $named = true): void {
             $as(Route::delete('novos-associados/{prospect}', [ProspectController::class, 'destroy']), 'admin.crm.destroy');
             $as(Route::patch('novos-associados/{prospect}/etapa', [ProspectController::class, 'stage']), 'admin.crm.stage');
             $as(Route::post('novos-associados/{prospect}/contatos', [ProspectInteractionController::class, 'store']), 'admin.crm.interactions.store');
+            $as(Route::post('novos-associados/{prospect}/convite', [ProspectController::class, 'invite']), 'admin.crm.invite');
         });
 
         Route::middleware('module:companies')->group(function () use ($as, $resource) {

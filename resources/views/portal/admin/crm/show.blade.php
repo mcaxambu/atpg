@@ -109,6 +109,49 @@
             </form>
         </x-admin.card>
 
+        {{--
+            Convite de cadastro. O link é o mesmo formulário público de sempre,
+            marcado com o token deste prospecto: quando ele preencher, o
+            cadastro cai aqui sozinho e a etapa anda.
+        --}}
+        @if (! $prospect->cadastro())
+            <x-admin.card title="Convite de cadastro">
+                @if ($prospect->invited_at)
+                    <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                        Enviado em {{ $prospect->invited_at->format('d/m/Y H:i') }}.
+                    </p>
+                @endif
+
+                <form method="post" action="{{ route('admin.crm.invite', $prospect) }}" class="space-y-3">
+                    @csrf
+
+                    <x-admin.field name="mensagem" label="Mensagem (opcional)"
+                                   hint="Em branco, vai um texto padrão de convite.">
+                        <textarea name="mensagem" rows="3" class="{{ $input }}"
+                                  placeholder="Foi ótimo conversar na terça...">{{ old('mensagem') }}</textarea>
+                    </x-admin.field>
+
+                    @if (blank($prospect->email))
+                        <p class="text-xs text-warning-700 dark:text-warning-300">
+                            Sem e-mail no cadastro deste prospecto. Informe um em "Editar" para enviar por e-mail —
+                            ou copie o link abaixo e mande por WhatsApp.
+                        </p>
+                    @endif
+
+                    <x-admin.button type="submit" variant="primary" icon="inbox">
+                        {{ $prospect->invited_at ? 'Reenviar convite' : 'Enviar convite por e-mail' }}
+                    </x-admin.button>
+                </form>
+
+                <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+                    <span class="text-xs font-medium uppercase tracking-wide text-gray-400">Link do convite</span>
+                    <input type="text" readonly value="{{ $linkDoConvite }}" onclick="this.select()"
+                           class="{{ $input }} mt-1 text-xs">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Clique para selecionar e copiar.</p>
+                </div>
+            </x-admin.card>
+        @endif
+
         <x-admin.card title="Próximo passo">
             @if ($prospect->next_action || $prospect->next_action_at)
                 <p class="text-sm text-gray-700 dark:text-gray-300">{{ $prospect->next_action ?: '—' }}</p>

@@ -27,6 +27,8 @@
 
         <form class="tail-form" method="post" action="{{ route('members.store') }}" enctype="multipart/form-data">
             @csrf
+            {{-- Convite: liga este cadastro ao prospecto que convidou. --}}
+            <input type="hidden" name="convite" value="{{ old('convite', $convite ?? '') }}">
             @include('portal.partials.form-guard')
             <div class="tail-form-grid">
                 <label>Nome completo<input name="name" value="{{ old('name') }}" placeholder="Nome completo" required></label>

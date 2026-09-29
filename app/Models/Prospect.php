@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * Empresa ou pessoa que a associacao esta convidando para entrar.
@@ -31,7 +32,7 @@ class Prospect extends Model
         'name', 'kind', 'contact_name', 'email', 'whatsapp', 'city', 'segment',
         'site_url', 'stage', 'source', 'owner_user_id', 'created_by',
         'next_action', 'next_action_at', 'notes', 'company_id', 'member_id',
-        'lost_reason', 'stage_changed_at',
+        'lost_reason', 'stage_changed_at', 'invite_token', 'invited_at',
     ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class Prospect extends Model
         'source' => ProspectSource::class,
         'next_action_at' => 'date',
         'stage_changed_at' => 'datetime',
+        'invited_at' => 'datetime',
     ];
 
     public function owner(): BelongsTo
@@ -148,6 +150,35 @@ class Prospect extends Model
         return $query->orderByRaw('next_action_at IS NULL')
             ->orderBy('next_action_at')
             ->orderByDesc('id');
+    }
+
+    // ----- Convite de cadastro -----
+
+    /**
+     * Link do formulario publico marcado com o token deste prospecto.
+     *
+     * E o que costura as duas pontas: a empresa preenche o cadastro de sempre,
+     * e o portal sabe que aquele cadastro nasceu desta conversa. Sem isso, o
+     * prospecto fica eternamente na etapa "convite enviado" enquanto o cadastro
+     * dele ja esta na fila de aprovacao.
+     */
+    public function linkDeCadastro(): string
+    {
+        if (blank($this->invite_token)) {
+            $this->forceFill(['invite_token' => Str::random(40)])->save();
+        }
+
+        $rota = $this->isCompany() ? 'companies.register.create' : 'members.create';
+
+        return route($rota, ['convite' => $this->invite_token]);
+    }
+
+    /** Prospecto que ainda pode receber um cadastro pelo convite. */
+    public function scopeAguardandoCadastro(Builder $query): Builder
+    {
+        return $query->whereNull('company_id')
+            ->whereNull('member_id')
+            ->whereNotIn('stage', [ProspectStage::Perdido->value]);
     }
 
     // ----- Mudanca de etapa -----

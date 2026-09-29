@@ -7,10 +7,12 @@ use App\Enums\ProspectSource;
 use App\Enums\ProspectStage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProspectRequest;
+use App\Mail\ProspectInviteMail;
 use App\Models\Prospect;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 /**
@@ -96,6 +98,9 @@ class ProspectController extends Controller
             'prospect' => $prospect->load(['owner', 'creator', 'company', 'member', 'interactions.user']),
             'etapas' => ProspectStage::all(),
             'tiposDeContato' => InteractionType::manuais(),
+            // Gera o token na primeira visita: assim o link ja existe para
+            // copiar e mandar por WhatsApp, sem precisar enviar o e-mail.
+            'linkDoConvite' => $prospect->cadastro() ? null : $prospect->linkDeCadastro(),
         ]);
     }
 
@@ -135,6 +140,53 @@ class ProspectController extends Controller
         );
 
         return back()->with('status', "Etapa alterada para {$prospect->stage->label()}.");
+    }
+
+    /**
+     * Envia o convite de cadastro e move o prospecto para "Convite enviado".
+     *
+     * Mover a etapa aqui, e nao deixar para a pessoa fazer depois, e o que
+     * mantem o funil fiel ao que aconteceu de verdade.
+     */
+    public function invite(Request $request, Prospect $prospect): RedirectResponse
+    {
+        $dados = $request->validate([
+            'mensagem' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        if (blank($prospect->email)) {
+            return back()->withErrors(['email' => 'Este prospecto não tem e-mail cadastrado. Informe um antes de enviar o convite.']);
+        }
+
+        $link = $prospect->linkDeCadastro();
+
+        try {
+            Mail::to($prospect->email)->send(new ProspectInviteMail(
+                $prospect,
+                $link,
+                $dados['mensagem'] ?? null,
+                $request->user()->name,
+            ));
+        } catch (\Throwable $erro) {
+            report($erro);
+
+            return back()->withErrors([
+                'convite' => 'O convite não pôde ser enviado. O link continua válido — copie e envie por WhatsApp.',
+            ]);
+        }
+
+        $prospect->forceFill(['invited_at' => now()])->save();
+
+        $prospect->interactions()->create([
+            'user_id' => $request->user()->id,
+            'type' => InteractionType::Email,
+            'summary' => "Convite de cadastro enviado para {$prospect->email}.",
+            'happened_at' => now(),
+        ]);
+
+        $prospect->moverPara(ProspectStage::Convite, $request->user());
+
+        return back()->with('status', "Convite enviado para {$prospect->email}.");
     }
 
     private function form(Prospect $prospect): View

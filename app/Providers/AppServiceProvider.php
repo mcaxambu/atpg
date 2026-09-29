@@ -11,7 +11,11 @@ use App\Models\Post;
 use App\Models\Specialty;
 use App\Observers\PortalContentObserver;
 use Carbon\Carbon;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
+// `Event` neste arquivo ja e o model de eventos do site; o facade entra com
+// apelido para os dois conviverem sem confusao.
+use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -60,6 +64,19 @@ class AppServiceProvider extends ServiceProvider
         // O Laravel 11+ nao traz mais um limitador "api" pronto; sem ele o
         // middleware throttle:api das rotas da API estoura em tempo de request.
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+
+        /*
+         * Data do ultimo acesso.
+         *
+         * E o sinal que responde "a empresa aprovada chegou a entrar no
+         * painel?", no acompanhamento de novos associados. Sem ele so daria
+         * para saber perguntando — o trabalho manual que o modulo existe para
+         * evitar. `saveQuietly` porque isto nao e edicao de conteudo e nao deve
+         * acordar observers nem mexer em `updated_at`.
+         */
+        EventFacade::listen(Login::class, function (Login $evento): void {
+            $evento->user->forceFill(['last_login_at' => now()])->saveQuietly();
+        });
 
         Paginator::defaultView('pagination::tailwind');
         Paginator::defaultSimpleView('pagination::simple-tailwind');
