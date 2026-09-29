@@ -210,6 +210,45 @@ class ProspectOnboardingTest extends TestCase
     }
 
     #[Test]
+    public function acesso_anterior_ao_registro_de_entradas_nao_conta_como_pendencia(): void
+    {
+        // O portal só passou a gravar a data de acesso em 29/09/2026. Para
+        // quem já tinha acesso antes disso a resposta honesta é "não sei" — e
+        // não pode virar cobrança.
+        $empresa = Company::factory()->create();
+
+        User::factory()->create([
+            'role' => UserRole::Company,
+            'company_id' => $empresa->id,
+            'last_login_at' => null,
+            'created_at' => '2026-08-01',
+        ]);
+
+        $progresso = new OnboardingProgress($empresa);
+        $entrou = collect($progresso->passos)->firstWhere('chave', 'entrou');
+
+        $this->assertTrue($entrou['indefinido']);
+        $this->assertNotContains('entrou', array_column($progresso->pendentes(), 'chave'));
+    }
+
+    #[Test]
+    public function acesso_criado_agora_e_nunca_usado_conta_como_pendencia(): void
+    {
+        $empresa = Company::factory()->create();
+
+        User::factory()->create([
+            'role' => UserRole::Company,
+            'company_id' => $empresa->id,
+            'last_login_at' => null,
+            'created_at' => now(),
+        ]);
+
+        $pendentes = array_column((new OnboardingProgress($empresa))->pendentes(), 'chave');
+
+        $this->assertContains('entrou', $pendentes);
+    }
+
+    #[Test]
     public function a_tela_de_acompanhamento_mostra_quem_esta_incompleto(): void
     {
         Company::factory()->create(['name' => 'Empresa Incompleta', 'description' => null, 'logo_path' => null]);

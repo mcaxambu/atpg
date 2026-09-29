@@ -73,11 +73,16 @@
 
                 <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($progresso->passos as $passo)
+                        @php
+                            $cor = match (true) {
+                                $passo['feito'] => 'bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-300',
+                                $passo['indefinido'] => 'bg-gray-50 text-gray-400 line-through dark:bg-white/[0.03] dark:text-gray-500',
+                                default => 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-gray-400',
+                            };
+                        @endphp
+
                         <span title="{{ $passo['ajuda'] }}"
-                              class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs
-                                     {{ $passo['feito']
-                                        ? 'bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-300'
-                                        : 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-gray-400' }}">
+                              class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs {{ $cor }}">
                             <x-admin.icon :name="$passo['feito'] ? 'check' : 'x'" class="h-3 w-3" />
                             {{ $passo['titulo'] }}
                         </span>
