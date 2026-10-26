@@ -67,7 +67,8 @@
         ]],
 
         ['Reuniões', [
-            ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
+            ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*') && ! request()->routeIs('admin.reunioes.participacao*')],
+            ['label' => 'Participação', 'module' => 'meetings', 'icon' => 'users', 'route' => route('admin.reunioes.participacao'), 'active' => request()->routeIs('admin.reunioes.participacao*')],
             ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
         ]],
     ];

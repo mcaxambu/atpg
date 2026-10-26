@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ColumnController as AdminColumnController;
 use App\Http\Controllers\Admin\JobOpeningController as AdminJobController;
 use App\Http\Controllers\Admin\MeetingController;
 use App\Http\Controllers\Admin\MeetingMinuteController;
+use App\Http\Controllers\Admin\MeetingParticipationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ForumCategoryController;
@@ -226,6 +227,11 @@ $adminRoutes = function (bool $named = true): void {
 
         // ----- Reunioes -----
         Route::middleware('module:meetings')->group(function () use ($as, $resource) {
+            // Participacao vem ANTES do curinga `reunioes/{reuniao}`: depois
+            // dele, "participacao" seria lido como id de reuniao.
+            $as(Route::get('reunioes/participacao', [MeetingParticipationController::class, 'index']), 'admin.reunioes.participacao');
+            $as(Route::get('reunioes/participacao/{company}', [MeetingParticipationController::class, 'show']), 'admin.reunioes.participacao.empresa');
+
             $as(Route::post('reunioes/{reuniao}/lista', [MeetingController::class, 'refreshAttendanceList']), 'admin.reunioes.lista');
             $as(Route::post('reunioes/{reuniao}/presencas', [MeetingController::class, 'saveAttendance']), 'admin.reunioes.presencas');
             $as(Route::post('reunioes/{reuniao}/pauta/{item}/resultado', [MeetingController::class, 'saveOutcome']), 'admin.reunioes.resultado');
