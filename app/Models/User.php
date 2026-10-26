@@ -59,6 +59,44 @@ class User extends Authenticatable
         return $this->role === UserRole::Admin;
     }
 
+    /**
+     * Como a pessoa assina no fórum.
+     *
+     * Sai do CADASTRO, e não de um apelido escolhido na hora: é a identidade
+     * real ligada à empresa associada que separa este fórum de um grupo de
+     * mensagens qualquer. Quem escreve pela empresa aparece com o próprio nome
+     * e o da empresa junto ("Rodrigo — Dataholds").
+     */
+    public function assinaturaNoForum(): string
+    {
+        if ($this->isCompany() && $this->company) {
+            return filled($this->name) && $this->name !== $this->company->name
+                ? "{$this->name} — {$this->company->name}"
+                : $this->company->name;
+        }
+
+        if ($this->isMember() && $this->member) {
+            $empresa = $this->member->company?->name;
+
+            return $empresa ? "{$this->member->name} — {$empresa}" : $this->member->name;
+        }
+
+        return $this->name ?: 'Associação';
+    }
+
+    /** Foto da assinatura no fórum: a do cadastro por trás do acesso. */
+    public function fotoNoForum(): ?string
+    {
+        return $this->member?->photo_path ?? $this->company?->logo_path;
+    }
+
+    public function iniciaisNoForum(): string
+    {
+        return (string) ($this->member?->avatar_initials
+            ?? $this->company?->initials
+            ?? mb_strtoupper(mb_substr($this->name ?: '?', 0, 2)));
+    }
+
     public function isCompany(): bool
     {
         return $this->role === UserRole::Company;

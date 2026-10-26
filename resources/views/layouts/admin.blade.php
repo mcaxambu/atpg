@@ -54,6 +54,11 @@
             ['label' => 'Colunas pendentes', 'module' => 'columns', 'icon' => 'inbox', 'route' => route('admin.columns.pending'), 'active' => request()->routeIs('admin.columns.pending'), 'badge' => $pendingColumns],
         ]],
 
+        ['Fórum', [
+            ['label' => 'Tópicos', 'module' => 'forum', 'icon' => 'inbox', 'route' => route('admin.forum.topics.index'), 'active' => request()->routeIs('admin.forum.topics.*')],
+            ['label' => 'Assuntos', 'module' => 'forum', 'icon' => 'tag', 'route' => route('admin.forum.categories.index'), 'active' => request()->routeIs('admin.forum.categories.*')],
+        ]],
+
         ['Reuniões', [
             ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
             ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],

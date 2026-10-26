@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\MeetingController;
 use App\Http\Controllers\Admin\MeetingMinuteController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\ForumCategoryController;
+use App\Http\Controllers\Admin\ForumModerationController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ProspectController;
@@ -34,6 +36,7 @@ use App\Http\Controllers\EditorImageController;
 use App\Http\Controllers\MemberPanel\AccountController as MemberAccountController;
 use App\Http\Controllers\Panel\ColumnController;
 use App\Http\Controllers\Panel\ColumnistPhotoController;
+use App\Http\Controllers\Panel\ForumController;
 use App\Http\Controllers\Panel\ColumnModerationController;
 use App\Http\Controllers\MemberPanel\ProfileController as MemberProfileController;
 use App\Http\Controllers\Portal\ColumnPageController;
@@ -176,6 +179,22 @@ $adminRoutes = function (bool $named = true): void {
             $as(Route::patch('novos-associados/{prospect}/etapa', [ProspectController::class, 'stage']), 'admin.crm.stage');
             $as(Route::post('novos-associados/{prospect}/contatos', [ProspectInteractionController::class, 'store']), 'admin.crm.interactions.store');
             $as(Route::post('novos-associados/{prospect}/convite', [ProspectController::class, 'invite']), 'admin.crm.invite');
+        });
+
+        // ----- Forum: assuntos e moderacao -----
+        Route::middleware('module:forum')->group(function () use ($as) {
+            $as(Route::get('forum/assuntos', [ForumCategoryController::class, 'index']), 'admin.forum.categories.index');
+            $as(Route::get('forum/assuntos/novo', [ForumCategoryController::class, 'create']), 'admin.forum.categories.create');
+            $as(Route::post('forum/assuntos', [ForumCategoryController::class, 'store']), 'admin.forum.categories.store');
+            $as(Route::get('forum/assuntos/{category}/editar', [ForumCategoryController::class, 'edit']), 'admin.forum.categories.edit');
+            $as(Route::put('forum/assuntos/{category}', [ForumCategoryController::class, 'update']), 'admin.forum.categories.update');
+            $as(Route::delete('forum/assuntos/{category}', [ForumCategoryController::class, 'destroy']), 'admin.forum.categories.destroy');
+
+            $as(Route::get('forum/topicos', [ForumModerationController::class, 'index']), 'admin.forum.topics.index');
+            $as(Route::get('forum/topicos/{topic}', [ForumModerationController::class, 'show']), 'admin.forum.topics.show');
+            $as(Route::patch('forum/topicos/{topic}', [ForumModerationController::class, 'toggle']), 'admin.forum.topics.toggle');
+            $as(Route::delete('forum/topicos/{topic}', [ForumModerationController::class, 'destroy']), 'admin.forum.topics.destroy');
+            $as(Route::patch('forum/respostas/{reply}', [ForumModerationController::class, 'toggleReply']), 'admin.forum.replies.toggle');
         });
 
         Route::middleware('module:companies')->group(function () use ($as, $resource) {
@@ -354,6 +373,17 @@ $companyRoutes = function (bool $named = true): void {
         $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'empresa.colunas.foto.update');
         $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'empresa.colunas.foto.destroy');
 
+        // ----- Forum dos associados -----
+        // "novo" vem antes de "{slug}", senao seria lido como endereco de topico.
+        $as(Route::get('forum', [ForumController::class, 'index']), 'empresa.forum.index');
+        $as(Route::get('forum/novo', [ForumController::class, 'create']), 'empresa.forum.create');
+        $as(Route::post('forum', [ForumController::class, 'store']), 'empresa.forum.store');
+        $as(Route::get('forum/{slug}', [ForumController::class, 'show']), 'empresa.forum.show');
+        $as(Route::get('forum/{slug}/editar', [ForumController::class, 'edit']), 'empresa.forum.edit');
+        $as(Route::put('forum/{slug}', [ForumController::class, 'update']), 'empresa.forum.update');
+        $as(Route::post('forum/{slug}/responder', [ForumController::class, 'reply']), 'empresa.forum.reply');
+        $as(Route::put('forum-respostas/{reply}', [ForumController::class, 'updateReply']), 'empresa.forum.reply.update');
+
         $as(Route::get('colaboradores', [CompanyMemberController::class, 'index']), 'empresa.membros.index');
         $as(Route::get('colaboradores/novo', [CompanyMemberController::class, 'create']), 'empresa.membros.create');
         $as(Route::post('colaboradores', [CompanyMemberController::class, 'store']), 'empresa.membros.store');
@@ -395,6 +425,16 @@ $memberRoutes = function (bool $named = true): void {
         $as(Route::delete('colunas/{column}', [ColumnController::class, 'destroy']), 'membro.colunas.destroy');
         $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'membro.colunas.foto.update');
         $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'membro.colunas.foto.destroy');
+
+        // ----- Forum dos associados -----
+        $as(Route::get('forum', [ForumController::class, 'index']), 'membro.forum.index');
+        $as(Route::get('forum/novo', [ForumController::class, 'create']), 'membro.forum.create');
+        $as(Route::post('forum', [ForumController::class, 'store']), 'membro.forum.store');
+        $as(Route::get('forum/{slug}', [ForumController::class, 'show']), 'membro.forum.show');
+        $as(Route::get('forum/{slug}/editar', [ForumController::class, 'edit']), 'membro.forum.edit');
+        $as(Route::put('forum/{slug}', [ForumController::class, 'update']), 'membro.forum.update');
+        $as(Route::post('forum/{slug}/responder', [ForumController::class, 'reply']), 'membro.forum.reply');
+        $as(Route::put('forum-respostas/{reply}', [ForumController::class, 'updateReply']), 'membro.forum.reply.update');
 
         $as(Route::get('conta', [MemberAccountController::class, 'edit']), 'membro.conta.edit');
         $as(Route::put('conta', [MemberAccountController::class, 'update']), 'membro.conta.update');

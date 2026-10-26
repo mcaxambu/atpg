@@ -7,6 +7,7 @@
         ...(auth()->user()?->columnist()
             ? [['label' => 'Minhas colunas', 'icon' => 'news', 'route' => route('membro.colunas.index'), 'active' => request()->routeIs('membro.colunas.*')]]
             : []),
+        ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('membro.forum.index'), 'active' => request()->routeIs('membro.forum.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('membro.conta.edit'), 'active' => request()->routeIs('membro.conta.*')],
     ];
 @endphp

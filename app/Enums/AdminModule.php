@@ -15,6 +15,7 @@ enum AdminModule: string
     case Companies = 'companies';
     case Jobs = 'jobs';
     case Columns = 'columns';
+    case Forum = 'forum';
     case Meetings = 'meetings';
     case Minutes = 'minutes';
     case Specialties = 'specialties';
@@ -29,6 +30,7 @@ enum AdminModule: string
             self::Companies => 'Empresas',
             self::Jobs => 'Vagas',
             self::Columns => 'Colunas',
+            self::Forum => 'Fórum',
             self::Meetings => 'Reuniões',
             self::Minutes => 'Atas de reunião',
             self::Specialties => 'Especialidades',
@@ -45,6 +47,7 @@ enum AdminModule: string
             self::Companies => 'Cadastro, aprovação, convites e lixeira de empresas.',
             self::Jobs => 'Aprovação das vagas publicadas pelas empresas.',
             self::Columns => 'Colunistas e aprovação das colunas que eles escrevem.',
+            self::Forum => 'Assuntos do fórum e moderação dos tópicos dos associados.',
             self::Meetings => 'Agenda de reuniões, presenças e encaminhamentos.',
             self::Minutes => 'Criação e download das atas.',
             self::Specialties => 'Lista de especialidades usada nos filtros.',
