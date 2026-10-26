@@ -234,6 +234,7 @@ $adminRoutes = function (bool $named = true): void {
 
             $as(Route::post('reunioes/{reuniao}/lista', [MeetingController::class, 'refreshAttendanceList']), 'admin.reunioes.lista');
             $as(Route::post('reunioes/{reuniao}/presencas', [MeetingController::class, 'saveAttendance']), 'admin.reunioes.presencas');
+            $as(Route::post('reunioes/{reuniao}/checkin', [MeetingController::class, 'toggleCheckin']), 'admin.reunioes.checkin');
             $as(Route::post('reunioes/{reuniao}/pauta/{item}/resultado', [MeetingController::class, 'saveOutcome']), 'admin.reunioes.resultado');
             $as(Route::post('reunioes/{reuniao}/encaminhamentos', [MeetingController::class, 'storeActionItem']), 'admin.reunioes.encaminhamentos.store');
             $as(Route::patch('encaminhamentos/{encaminhamento}', [MeetingController::class, 'updateActionItem']), 'admin.encaminhamentos.update');
@@ -336,6 +337,7 @@ $companyRoutes = function (bool $named = true): void {
 
         $as(Route::get('reunioes', [CompanyMeetingController::class, 'index']), 'empresa.reunioes.index');
         $as(Route::post('reunioes/{reuniao}/confirmar', [CompanyMeetingController::class, 'confirm']), 'empresa.reunioes.confirmar');
+        $as(Route::post('reunioes/{reuniao}/checkin', [CompanyMeetingController::class, 'checkin']), 'empresa.reunioes.checkin');
 
         $as(Route::get('atas', [CompanyMeetingMinuteController::class, 'index']), 'empresa.atas.index');
         $as(Route::get('atas/{ata}/baixar', [CompanyMeetingMinuteController::class, 'download']), 'empresa.atas.download');

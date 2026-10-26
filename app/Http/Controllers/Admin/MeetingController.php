@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\CheckInAtMeeting;
 use App\Actions\GenerateMinuteFromMeeting;
 use App\Enums\AttendanceStatus;
 use App\Enums\MeetingStatus;
@@ -11,6 +12,7 @@ use App\Models\Company;
 use App\Models\Meeting;
 use App\Models\MeetingActionItem;
 use App\Models\MeetingAgendaItem;
+use App\Models\MeetingAttendance;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -116,6 +118,42 @@ class MeetingController extends Controller
         return back()->with('status', $novas === 0
             ? 'A lista já está completa.'
             : ($novas === 1 ? '1 empresa adicionada à lista.' : "{$novas} empresas adicionadas à lista."));
+    }
+
+    /**
+     * Check-in feito pela recepcao, para quem chegou e nao registrou sozinho.
+     *
+     * Sem codigo: a diretoria esta vendo a pessoa na frente dela. Clicar de
+     * novo desfaz — erro de clique na porta de entrada tem de ser reversivel
+     * em um clique, nao numa tela de correcao.
+     */
+    public function toggleCheckin(Request $request, Meeting $reuniao, CheckInAtMeeting $checkin): RedirectResponse
+    {
+        $dados = $request->validate(['company_id' => ['required', 'exists:companies,id']]);
+
+        $presenca = $reuniao->attendances()->firstWhere('company_id', $dados['company_id']);
+
+        abort_unless($presenca, 404);
+
+        if ($presenca->fezCheckin()) {
+            $presenca->forceFill([
+                'attended' => false,
+                'checked_in_at' => null,
+                'checked_in_source' => null,
+            ])->save();
+
+            return back()->with('status', 'Check-in desfeito.');
+        }
+
+        $resultado = $checkin(
+            $reuniao,
+            $presenca->company,
+            MeetingAttendance::CHECKIN_DIRETORIA
+        );
+
+        return $resultado === CheckInAtMeeting::OK
+            ? back()->with('status', 'Chegada registrada.')
+            : back()->withErrors(['checkin' => 'O check-in desta reunião não está aberto.']);
     }
 
     /**

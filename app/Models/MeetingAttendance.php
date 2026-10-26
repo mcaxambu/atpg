@@ -18,6 +18,8 @@ class MeetingAttendance extends Model
         'responded_by',
         'responded_at',
         'attended',
+        'checked_in_at',
+        'checked_in_source',
         'notes',
     ];
 
@@ -25,7 +27,26 @@ class MeetingAttendance extends Model
         'status' => AttendanceStatus::class,
         'responded_at' => 'datetime',
         'attended' => 'boolean',
+        'checked_in_at' => 'datetime',
     ];
+
+    public const CHECKIN_EMPRESA = 'empresa';
+
+    public const CHECKIN_DIRETORIA = 'diretoria';
+
+    public function fezCheckin(): bool
+    {
+        return $this->checked_in_at !== null;
+    }
+
+    public function checkinLabel(): string
+    {
+        return match ($this->checked_in_source) {
+            self::CHECKIN_EMPRESA => 'check-in da empresa',
+            self::CHECKIN_DIRETORIA => 'marcado na recepção',
+            default => '',
+        };
+    }
 
     public function meeting(): BelongsTo
     {

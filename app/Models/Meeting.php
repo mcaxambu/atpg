@@ -28,6 +28,7 @@ class Meeting extends Model
         'online_url',
         'description',
         'public_token',
+        'checkin_code',
         'confirmations_until',
         'quorum_minimum',
         'meeting_minute_id',
@@ -122,6 +123,51 @@ class Meeting extends Model
     public function attendedCount(): int
     {
         return $this->attendances->where('attended', true)->count();
+    }
+
+    // ----- Check-in -----
+
+    /**
+     * Janela em que o check-in funciona.
+     *
+     * Abre uma hora antes — gente chega cedo — e fecha tres horas depois do
+     * fim previsto, para quem esqueceu de registrar na hora ainda conseguir.
+     * Fora disso o check-in deixaria de significar "estive la".
+     */
+    public function checkinAberto(): bool
+    {
+        if ($this->status === MeetingStatus::Cancelada || ! $this->scheduled_at) {
+            return false;
+        }
+
+        $fim = ($this->ends_at ?? $this->scheduled_at->copy()->addHours(3))->copy()->addHours(3);
+
+        return now()->betweenIncluded($this->scheduled_at->copy()->subHour(), $fim);
+    }
+
+    /**
+     * Codigo que a diretoria mostra na sala.
+     *
+     * Nasce na primeira vez que alguem precisa dele, e nao na criacao da
+     * reuniao: reuniao marcada para daqui a um mes nao tem por que ja ter
+     * codigo circulando.
+     *
+     * Sem letras que se confundem com numero (I, O) nem acento: ele e lido em
+     * voz alta ou de um projetor, e digitado no celular.
+     */
+    public function codigoDeCheckin(): string
+    {
+        if (blank($this->checkin_code)) {
+            $this->forceFill(['checkin_code' => Str::upper(Str::random(2)).random_int(100, 999)])
+                ->saveQuietly();
+        }
+
+        return $this->checkin_code;
+    }
+
+    public function checkedInCount(): int
+    {
+        return $this->attendances->whereNotNull('checked_in_at')->count();
     }
 
     /**

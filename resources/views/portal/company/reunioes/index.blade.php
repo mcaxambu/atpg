@@ -78,6 +78,42 @@
                     </div>
                 </div>
 
+                {{--
+                    Check-in: só aparece na janela da reunião, e é diferente de
+                    confirmar. Confirmar é dizer que pretende ir; o check-in é
+                    dizer que chegou, com o código mostrado na sala.
+                --}}
+                @if ($reuniao->checkinAberto())
+                    <div class="mt-4 rounded-xl border p-4 {{ $minha?->fezCheckin() ? 'border-success-200 bg-success-50/50 dark:border-success-500/30 dark:bg-success-500/5' : 'border-brand-200 bg-brand-50/40 dark:border-brand-500/30 dark:bg-brand-500/5' }}">
+                        @if ($minha?->fezCheckin())
+                            <div class="flex items-center gap-2 text-sm font-medium text-success-700 dark:text-success-300">
+                                <x-admin.icon name="check" class="h-4 w-4" />
+                                Presença registrada às {{ $minha->checked_in_at->format('H:i') }}.
+                            </div>
+                        @else
+                            <p class="text-sm font-medium text-gray-800 dark:text-white/90">Já está na reunião? Faça seu check-in.</p>
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                Digite o código que a diretoria está mostrando na sala. É assim que sua presença fica registrada.
+                            </p>
+
+                            <form method="post" action="{{ route('empresa.reunioes.checkin', $reuniao) }}"
+                                  class="mt-3 flex flex-wrap items-start gap-2">
+                                @csrf
+                                <div>
+                                    <input type="text" name="codigo" maxlength="10" required autocomplete="off"
+                                           placeholder="código da sala"
+                                           class="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm uppercase tracking-widest text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                                    @error('codigo')
+                                        <span class="mt-1 block text-xs text-error-600 dark:text-error-400">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <x-admin.button type="submit" variant="primary" icon="check">Fazer check-in</x-admin.button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
+
                 @if ($reuniao->agendaItems->isNotEmpty())
                     <details class="mt-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                         <summary class="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">

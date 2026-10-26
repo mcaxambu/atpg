@@ -89,6 +89,59 @@
     </div>
 @endif
 
+{{--
+    ---------- Check-in ----------
+
+    Só aparece na janela da reunião. O código é para mostrar na sala (projetor,
+    quadro, ou lido em voz alta): sem ele, qualquer associado logado faria
+    check-in de casa, e a presença deixaria de significar presença.
+--}}
+@if ($reuniao->checkinAberto())
+    <x-admin.card class="mb-6" title="Check-in aberto"
+                  subtitle="Mostre o código na sala. Quem chegar registra a própria presença pelo painel.">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <span class="text-xs font-medium uppercase tracking-wide text-gray-400">Código da sala</span>
+                <strong class="mt-1 block font-mono text-4xl font-bold tracking-widest text-brand-600 dark:text-brand-400">
+                    {{ $reuniao->codigoDeCheckin() }}
+                </strong>
+            </div>
+
+            <div class="text-right">
+                <span class="text-xs font-medium uppercase tracking-wide text-gray-400">Já chegaram</span>
+                <strong class="mt-1 block text-3xl font-semibold text-gray-800 dark:text-white/90">
+                    {{ $reuniao->checkedInCount() }}
+                    <span class="text-base font-normal text-gray-400">de {{ $reuniao->attendances->count() }}</span>
+                </strong>
+            </div>
+        </div>
+
+        <div class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-800">
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                Na recepção: clique para marcar quem chegou e não registrou sozinho. Clicar de novo desfaz.
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+                @foreach ($reuniao->attendances->sortBy(fn ($p) => $p->company?->name) as $presenca)
+                    <form method="post" action="{{ route('admin.reunioes.checkin', $reuniao) }}">
+                        @csrf
+                        <input type="hidden" name="company_id" value="{{ $presenca->company_id }}">
+                        <button type="submit"
+                                @class([
+                                    'rounded-lg border px-3 py-2 text-xs font-medium transition',
+                                    'border-success-300 bg-success-50 text-success-700 dark:border-success-500/40 dark:bg-success-500/10 dark:text-success-300' => $presenca->fezCheckin(),
+                                    'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.04]' => ! $presenca->fezCheckin(),
+                                ])
+                                title="{{ $presenca->fezCheckin() ? $presenca->checkinLabel().' às '.$presenca->checked_in_at->format('H:i') : 'Marcar chegada' }}">
+                            {{ $presenca->fezCheckin() ? '✓ ' : '' }}{{ $presenca->company?->name }}
+                        </button>
+                    </form>
+                @endforeach
+            </div>
+        </div>
+    </x-admin.card>
+@endif
+
 {{-- ---------- Presença ---------- --}}
 <x-admin.card title="Lista de presença" subtitle="Confirmações recebidas e presença registrada no dia." :padding="false">
     <x-slot:actions>
@@ -136,6 +189,13 @@
                                 <input type="checkbox" name="presentes[]" value="{{ $presenca->company_id }}"
                                        @checked($presenca->attended)
                                        class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+
+                                {{-- De onde veio a presença: o check-in já deixa a caixa marcada. --}}
+                                @if ($presenca->fezCheckin())
+                                    <span class="mt-1 block text-[11px] text-gray-400">
+                                        {{ $presenca->checked_in_at->format('H:i') }} · {{ $presenca->checkinLabel() }}
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty
