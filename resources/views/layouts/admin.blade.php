@@ -55,6 +55,13 @@
         ]],
 
         ['Fórum', [
+            /*
+                "Participar" nao tem 'module': a diretoria tambem e associada e
+                conversa no forum como qualquer um. Moderar e que depende do
+                modulo — sao coisas diferentes e estavam embaralhadas: antes a
+                diretoria so alcancava a moderacao e ficava de fora da conversa.
+            */
+            ['label' => 'Participar do fórum', 'icon' => 'quote', 'route' => route('forum.index'), 'active' => request()->routeIs('forum.*')],
             ['label' => 'Tópicos', 'module' => 'forum', 'icon' => 'inbox', 'route' => route('admin.forum.topics.index'), 'active' => request()->routeIs('admin.forum.topics.*')],
             ['label' => 'Assuntos', 'module' => 'forum', 'icon' => 'tag', 'route' => route('admin.forum.categories.index'), 'active' => request()->routeIs('admin.forum.categories.*')],
         ]],

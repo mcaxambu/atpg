@@ -1,11 +1,12 @@
 @extends($layout)
 
 @section('title', $topic->exists ? 'Editar tópico' : 'Abrir tópico')
+@section('page_heading', 'Fórum')
 
 @section('content')
 @php
     $input = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
-    $action = $topic->exists ? route($rotaBase.'.update', $topic->slug) : route($rotaBase.'.store');
+    $action = $topic->exists ? route('forum.update', $topic->slug) : route('forum.store');
 @endphp
 
 <form method="post" action="{{ $action }}" class="space-y-6">
@@ -42,7 +43,7 @@
             {{ $topic->exists ? 'Salvar' : 'Publicar tópico' }}
         </x-admin.button>
 
-        <x-admin.button :href="$topic->exists ? route($rotaBase.'.show', $topic->slug) : route($rotaBase.'.index')" variant="ghost">Cancelar</x-admin.button>
+        <x-admin.button :href="$topic->exists ? route('forum.show', $topic->slug) : route('forum.index')" variant="ghost">Cancelar</x-admin.button>
     </div>
 </form>
 @endsection

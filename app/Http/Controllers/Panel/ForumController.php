@@ -15,8 +15,12 @@ use Illuminate\View\View;
 /**
  * Forum dos associados.
  *
- * Um controller so atende empresa e membro, como o das colunas: muda apenas o
- * prefixo da rota e o layout, entao duplicar a classe seria duplicar a regra.
+ * UM endereco para quem quer que entre no portal — diretoria, empresa e
+ * membro. A conversa e a mesma para os tres; muda so a moldura em volta.
+ *
+ * Nasceu com rota duplicada por painel, e a diretoria ficava de fora: ela
+ * modera, mas tambem e associada e quer participar. Rota por papel fazia
+ * parecer que eram tres foruns.
  *
  * O forum e FECHADO — nada aqui aparece no site publico. Foi decisao do
  * usuario: o pessoal escreve sabendo que fica entre associados.
@@ -65,7 +69,7 @@ class ForumController extends Controller
             'slug' => ForumTopic::uniqueSlug($dados['title']),
         ]);
 
-        return redirect()->route($this->rotaBase($request).'.show', $topico->slug)
+        return redirect()->route('forum.show', $topico->slug)
             ->with('status', 'Tópico publicado.');
     }
 
@@ -102,7 +106,7 @@ class ForumController extends Controller
 
         $topico->update($this->validar($request));
 
-        return redirect()->route($this->rotaBase($request).'.show', $topico->slug)
+        return redirect()->route('forum.show', $topico->slug)
             ->with('status', 'Tópico atualizado.');
     }
 
@@ -135,7 +139,7 @@ class ForumController extends Controller
 
         $this->avisarParticipantes($topico, $resposta, $request);
 
-        return redirect()->route($this->rotaBase($request).'.show', $topico->slug)
+        return redirect()->route('forum.show', $topico->slug)
             ->with('status', 'Resposta publicada.');
     }
 
@@ -145,7 +149,7 @@ class ForumController extends Controller
 
         $reply->update($request->validate(['body' => ['required', 'string', 'max:20000']]));
 
-        return redirect()->route($this->rotaBase($request).'.show', $reply->topic->slug)
+        return redirect()->route('forum.show', $reply->topic->slug)
             ->with('status', 'Resposta atualizada.');
     }
 
@@ -187,17 +191,25 @@ class ForumController extends Controller
         );
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * O que toda tela do fórum precisa.
+     *
+     * O endereço é o mesmo para todo mundo; muda só a moldura em volta, para
+     * a pessoa continuar no painel que ela conhece — a diretoria não deve
+     * cair no layout da empresa só porque entrou no fórum.
+     *
+     * @return array<string, mixed>
+     */
     private function comum(Request $request): array
     {
-        return [
-            'rotaBase' => $this->rotaBase($request),
-            'layout' => $request->user()->isCompany() ? 'layouts.company' : 'layouts.membro',
-        ];
-    }
+        $user = $request->user();
 
-    private function rotaBase(Request $request): string
-    {
-        return $request->user()->isCompany() ? 'empresa.forum' : 'membro.forum';
+        return [
+            'layout' => match (true) {
+                $user->isAdmin() => 'layouts.admin',
+                $user->isCompany() => 'layouts.company',
+                default => 'layouts.membro',
+            },
+        ];
     }
 }

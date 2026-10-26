@@ -1,6 +1,7 @@
 @extends($layout)
 
 @section('title', $topic->title)
+@section('page_heading', 'Fórum')
 
 @section('content')
 @php
@@ -10,9 +11,9 @@
 <div class="space-y-6">
     <x-admin.card>
         <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <a href="{{ route($rotaBase.'.index') }}" class="hover:text-brand-600">Fórum</a>
+            <a href="{{ route('forum.index') }}" class="hover:text-brand-600">Fórum</a>
             <span>·</span>
-            <a href="{{ route($rotaBase.'.index', ['categoria' => $topic->category?->slug]) }}" class="hover:text-brand-600">{{ $topic->category?->name }}</a>
+            <a href="{{ route('forum.index', ['categoria' => $topic->category?->slug]) }}" class="hover:text-brand-600">{{ $topic->category?->name }}</a>
 
             @if ($topic->is_closed)
                 <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">fechado para respostas</span>
@@ -33,7 +34,7 @@
 
                 @if ($topic->podeSerEditadoPor(auth()->user()))
                     <div class="mt-3">
-                        <x-admin.button :href="route($rotaBase.'.edit', $topic->slug)" icon="edit">Editar meu tópico</x-admin.button>
+                        <x-admin.button :href="route('forum.edit', $topic->slug)" icon="edit">Editar meu tópico</x-admin.button>
                     </div>
                 @endif
             </div>
@@ -71,7 +72,7 @@
         </x-admin.card>
     @else
         <x-admin.card title="Responder">
-            <form method="post" action="{{ route($rotaBase.'.reply', $topic->slug) }}" class="space-y-4">
+            <form method="post" action="{{ route('forum.reply', $topic->slug) }}" class="space-y-4">
                 @csrf
 
                 <x-admin.field name="body" required>

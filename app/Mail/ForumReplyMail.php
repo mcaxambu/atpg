@@ -37,8 +37,6 @@ class ForumReplyMail extends Mailable
 
     public function content(): Content
     {
-        $ehEmpresa = $this->destinatario->isCompany();
-
         return new Content(
             markdown: 'emails.forum-reply',
             with: [
@@ -46,7 +44,8 @@ class ForumReplyMail extends Mailable
                 'autor' => $this->reply->author?->assinaturaNoForum() ?? 'Alguém',
                 'titulo' => $this->topic->title,
                 'trecho' => str($this->reply->rendered_body)->stripTags()->squish()->limit(400)->value(),
-                'link' => route($ehEmpresa ? 'empresa.forum.show' : 'membro.forum.show', $this->topic->slug),
+                // Endereco unico do forum: vale para diretoria, empresa e membro.
+                'link' => route('forum.show', $this->topic->slug),
                 'siteName' => SiteSetting::getValue('site_name', 'Associação Tech PG'),
             ],
         );

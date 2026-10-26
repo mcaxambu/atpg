@@ -56,8 +56,8 @@ class ForumTest extends TestCase
     {
         ForumTopic::factory()->create(['title' => 'Assunto interno da associação']);
 
-        $this->get('/empresa/forum')->assertRedirect();
-        $this->get('/membro/forum')->assertRedirect();
+        $this->get('/forum')->assertRedirect();
+        $this->get('/forum')->assertRedirect();
     }
 
     #[Test]
@@ -65,11 +65,18 @@ class ForumTest extends TestCase
     {
         $topico = ForumTopic::factory()->create(['title' => 'Assunto interno da associação']);
 
-        // Não existe rota pública para o fórum: o conteúdo não vaza por lugar
-        // nenhum do portal.
+        /*
+            O fórum exige sessão: quem não entrou vai para o login e não lê
+            nada. O endereço existir não é problema — o que não pode é o
+            conteúdo aparecer para quem não é associado.
+        */
         $this->get(route('home'))->assertOk()->assertDontSee($topico->title);
-        $this->get('/forum')->assertNotFound();
-        $this->get('/forum/'.$topico->slug)->assertNotFound();
+
+        $this->get('/forum')->assertRedirect()->assertDontSee($topico->title);
+        $this->get('/forum/'.$topico->slug)->assertRedirect()->assertDontSee($topico->title);
+
+        // E o portal público não ganhou rota de fórum por engano.
+        $this->get('/forum-publico')->assertNotFound();
     }
 
     #[Test]
@@ -79,12 +86,12 @@ class ForumTest extends TestCase
         $oculto = ForumTopic::factory()->oculto()->create(['title' => 'Tópico retirado do ar']);
         ForumTopic::factory()->create(['title' => 'Tópico normal']);
 
-        $this->actingAs($user)->get(route('empresa.forum.index'))
+        $this->actingAs($user)->get(route('forum.index'))
             ->assertOk()
             ->assertSee('Tópico normal')
             ->assertDontSee('Tópico retirado do ar');
 
-        $this->actingAs($user)->get(route('empresa.forum.show', $oculto->slug))->assertNotFound();
+        $this->actingAs($user)->get(route('forum.show', $oculto->slug))->assertNotFound();
     }
 
     // ----- Escrever -----
@@ -95,7 +102,7 @@ class ForumTest extends TestCase
         $user = $this->empresaLogada();
         $categoria = ForumCategory::factory()->create();
 
-        $this->actingAs($user)->post(route('empresa.forum.store'), [
+        $this->actingAs($user)->post(route('forum.store'), [
             'forum_category_id' => $categoria->id,
             'title' => 'Alguém já emitiu nota de serviço em PG?',
             'body' => '<p>Queria saber como vocês fazem.</p>',
@@ -109,7 +116,7 @@ class ForumTest extends TestCase
         // A assinatura vem do cadastro: nome da pessoa e da empresa.
         $this->assertSame('Rodrigo Rezende — Dataholds', $user->assinaturaNoForum());
 
-        $this->actingAs($user)->get(route('empresa.forum.show', $topico->slug))
+        $this->actingAs($user)->get(route('forum.show', $topico->slug))
             ->assertOk()
             ->assertSee('Rodrigo Rezende — Dataholds');
     }
@@ -120,7 +127,7 @@ class ForumTest extends TestCase
         $user = $this->membroLogado();
         $categoria = ForumCategory::factory()->create();
 
-        $this->actingAs($user)->post(route('membro.forum.store'), [
+        $this->actingAs($user)->post(route('forum.store'), [
             'forum_category_id' => $categoria->id,
             'title' => 'Indicação de contador',
             'body' => '<p>Alguém indica?</p>',
@@ -133,7 +140,7 @@ class ForumTest extends TestCase
     public function topico_exige_assunto_titulo_e_texto(): void
     {
         $this->actingAs($this->empresaLogada())
-            ->post(route('empresa.forum.store'), [])
+            ->post(route('forum.store'), [])
             ->assertSessionHasErrors(['forum_category_id', 'title', 'body']);
 
         $this->assertSame(0, ForumTopic::count());
@@ -147,7 +154,7 @@ class ForumTest extends TestCase
         $user = $this->empresaLogada();
         $categoria = ForumCategory::factory()->create();
 
-        $this->actingAs($user)->post(route('empresa.forum.store'), [
+        $this->actingAs($user)->post(route('forum.store'), [
             'forum_category_id' => $categoria->id,
             'title' => 'Teste',
             'body' => '<p>Texto</p><script>alert(1)</script>',
@@ -169,7 +176,7 @@ class ForumTest extends TestCase
 
         $topico = ForumTopic::factory()->create(['user_id' => $autor->id]);
 
-        $this->actingAs($quemResponde)->post(route('membro.forum.reply', $topico->slug), [
+        $this->actingAs($quemResponde)->post(route('forum.reply', $topico->slug), [
             'body' => '<p>Nós fazemos assim.</p>',
         ])->assertRedirect();
 
@@ -191,7 +198,7 @@ class ForumTest extends TestCase
 
         $topico = ForumTopic::factory()->create(['user_id' => $autor->id]);
 
-        $this->actingAs($autor)->post(route('empresa.forum.reply', $topico->slug), ['body' => '<p>Eu mesmo respondo.</p>']);
+        $this->actingAs($autor)->post(route('forum.reply', $topico->slug), ['body' => '<p>Eu mesmo respondo.</p>']);
 
         Mail::assertNothingSent();
     }
@@ -203,7 +210,7 @@ class ForumTest extends TestCase
         $topico = ForumTopic::factory()->fechado()->create();
 
         $this->actingAs($user)
-            ->post(route('empresa.forum.reply', $topico->slug), ['body' => '<p>Ainda dá?</p>'])
+            ->post(route('forum.reply', $topico->slug), ['body' => '<p>Ainda dá?</p>'])
             ->assertForbidden();
 
         $this->assertSame(0, $topico->replies()->count());
@@ -218,9 +225,9 @@ class ForumTest extends TestCase
         $outro = $this->membroLogado();
         $topico = ForumTopic::factory()->create(['user_id' => $autor->id]);
 
-        $this->actingAs($outro)->get(route('membro.forum.edit', $topico->slug))->assertForbidden();
+        $this->actingAs($outro)->get(route('forum.edit', $topico->slug))->assertForbidden();
 
-        $this->actingAs($autor)->put(route('empresa.forum.update', $topico->slug), [
+        $this->actingAs($autor)->put(route('forum.update', $topico->slug), [
             'forum_category_id' => $topico->forum_category_id,
             'title' => 'Título corrigido',
             'body' => '<p>Texto corrigido.</p>',
@@ -295,7 +302,7 @@ class ForumTest extends TestCase
         ForumCategory::factory()->create(['name' => 'Assunto Ativo']);
         ForumCategory::factory()->inativa()->create(['name' => 'Assunto Encerrado']);
 
-        $this->actingAs($user)->get(route('empresa.forum.create'))
+        $this->actingAs($user)->get(route('forum.create'))
             ->assertOk()
             ->assertSee('Assunto Ativo')
             ->assertDontSee('Assunto Encerrado');
@@ -312,9 +319,52 @@ class ForumTest extends TestCase
         ForumTopic::factory()->create(['title' => 'Topico Recente', 'last_reply_at' => now()]);
         ForumTopic::factory()->fixado()->create(['title' => 'Topico Fixado', 'last_reply_at' => now()->subMonth()]);
 
-        $this->actingAs($user)->get(route('empresa.forum.index'))
+        $this->actingAs($user)->get(route('forum.index'))
             ->assertOk()
             ->assertSeeInOrder(['Topico Fixado', 'Topico Recente', 'Topico Antigo']);
+    }
+
+    // ----- A diretoria também é associada -----
+
+    #[Test]
+    public function a_diretoria_participa_do_forum_pelo_mesmo_endereco(): void
+    {
+        // O fórum nasceu com rota por painel e a diretoria ficava de fora:
+        // moderava, mas não conversava.
+        $admin = $this->diretoria();
+        $categoria = ForumCategory::factory()->create();
+
+        $this->actingAs($admin)->get(route('forum.index'))->assertOk();
+
+        $this->actingAs($admin)->post(route('forum.store'), [
+            'forum_category_id' => $categoria->id,
+            'title' => 'Aviso da diretoria',
+            'body' => '<p>Assembleia em novembro.</p>',
+        ])->assertRedirect();
+
+        $this->assertSame($admin->id, ForumTopic::firstOrFail()->user_id);
+    }
+
+    #[Test]
+    public function a_diretoria_ve_o_forum_no_proprio_painel(): void
+    {
+        $this->actingAs($this->diretoria())->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Participar do fórum');
+    }
+
+    #[Test]
+    public function admin_sem_o_modulo_de_moderacao_ainda_participa(): void
+    {
+        // Participar e moderar são coisas diferentes: quem não modera continua
+        // sendo associado e conversando.
+        $semModulo = User::factory()->create([
+            'role' => UserRole::Admin,
+            'abilities' => [AdminModule::Members->value],
+        ]);
+
+        $this->actingAs($semModulo)->get(route('forum.index'))->assertOk();
+        $this->actingAs($semModulo)->get(route('admin.forum.topics.index'))->assertForbidden();
     }
 
     #[Test]

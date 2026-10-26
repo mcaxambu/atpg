@@ -14,7 +14,7 @@
         ...($company?->moderates_columns
             ? [['label' => 'Moderar colunas', 'icon' => 'shield', 'route' => route('empresa.moderacao.index'), 'active' => request()->routeIs('empresa.moderacao.*'), 'badge' => \App\Models\Post::columns()->pending()->count()]]
             : []),
-        ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('empresa.forum.index'), 'active' => request()->routeIs('empresa.forum.*')],
+        ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('forum.index'), 'active' => request()->routeIs('forum.*')],
         ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('empresa.reunioes.index'), 'active' => request()->routeIs('empresa.reunioes.*')],
         ['label' => 'Atas de reunião', 'icon' => 'file', 'route' => route('empresa.atas.index'), 'active' => request()->routeIs('empresa.atas.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('empresa.conta.edit'), 'active' => request()->routeIs('empresa.conta.*')],

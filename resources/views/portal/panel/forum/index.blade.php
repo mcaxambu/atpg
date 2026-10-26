@@ -2,6 +2,7 @@
 @extends($layout)
 
 @section('title', 'Fórum')
+@section('page_heading', 'Fórum')
 
 @section('content')
 <div class="grid gap-6 xl:grid-cols-4">
@@ -12,11 +13,11 @@
                 {{ $categoria?->description ?? 'Espaço fechado: só quem é associado lê e escreve aqui.' }}
             </x-slot:subtitle>
             <x-slot:actions>
-                <x-admin.button :href="route($rotaBase.'.create')" variant="primary" icon="plus">Abrir tópico</x-admin.button>
+                <x-admin.button :href="route('forum.create')" variant="primary" icon="plus">Abrir tópico</x-admin.button>
             </x-slot:actions>
 
             <div class="border-b border-gray-100 p-5 dark:border-gray-800">
-                <form method="get" action="{{ route($rotaBase.'.index') }}" class="flex flex-col gap-3 sm:flex-row">
+                <form method="get" action="{{ route('forum.index') }}" class="flex flex-col gap-3 sm:flex-row">
                     @if ($categoria)
                         <input type="hidden" name="categoria" value="{{ $categoria->slug }}">
                     @endif
@@ -48,7 +49,7 @@
                                     <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">fechado</span>
                                 @endif
 
-                                <a href="{{ route($rotaBase.'.show', $topico->slug) }}"
+                                <a href="{{ route('forum.show', $topico->slug) }}"
                                    class="truncate text-sm font-semibold text-gray-800 hover:text-brand-600 dark:text-white/90">{{ $topico->title }}</a>
                             </div>
 
@@ -70,7 +71,7 @@
                     <x-admin.empty-state icon="quote" title="Nenhum tópico por aqui ainda."
                                          description="Abra o primeiro: uma dúvida, uma indicação, uma vaga de parceria.">
                         <x-slot:actions>
-                            <x-admin.button :href="route($rotaBase.'.create')" variant="primary" icon="plus">Abrir tópico</x-admin.button>
+                            <x-admin.button :href="route('forum.create')" variant="primary" icon="plus">Abrir tópico</x-admin.button>
                         </x-slot:actions>
                     </x-admin.empty-state>
                 @endforelse
@@ -85,13 +86,13 @@
     <div class="space-y-6">
         <x-admin.card title="Assuntos" :padding="false">
             <div class="divide-y divide-gray-100 dark:divide-gray-800">
-                <a href="{{ route($rotaBase.'.index') }}"
+                <a href="{{ route('forum.index') }}"
                    class="flex items-center justify-between px-5 py-3 text-sm {{ $categoria === null ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]' }}">
                     Todos
                 </a>
 
                 @foreach ($categorias as $item)
-                    <a href="{{ route($rotaBase.'.index', ['categoria' => $item->slug]) }}"
+                    <a href="{{ route('forum.index', ['categoria' => $item->slug]) }}"
                        class="flex items-center justify-between gap-2 px-5 py-3 text-sm {{ $categoria?->id === $item->id ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]' }}">
                         <span class="min-w-0 truncate">{{ $item->name }}</span>
                         <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">{{ $item->topics_count }}</span>

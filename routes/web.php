@@ -373,16 +373,6 @@ $companyRoutes = function (bool $named = true): void {
         $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'empresa.colunas.foto.update');
         $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'empresa.colunas.foto.destroy');
 
-        // ----- Forum dos associados -----
-        // "novo" vem antes de "{slug}", senao seria lido como endereco de topico.
-        $as(Route::get('forum', [ForumController::class, 'index']), 'empresa.forum.index');
-        $as(Route::get('forum/novo', [ForumController::class, 'create']), 'empresa.forum.create');
-        $as(Route::post('forum', [ForumController::class, 'store']), 'empresa.forum.store');
-        $as(Route::get('forum/{slug}', [ForumController::class, 'show']), 'empresa.forum.show');
-        $as(Route::get('forum/{slug}/editar', [ForumController::class, 'edit']), 'empresa.forum.edit');
-        $as(Route::put('forum/{slug}', [ForumController::class, 'update']), 'empresa.forum.update');
-        $as(Route::post('forum/{slug}/responder', [ForumController::class, 'reply']), 'empresa.forum.reply');
-        $as(Route::put('forum-respostas/{reply}', [ForumController::class, 'updateReply']), 'empresa.forum.reply.update');
 
         $as(Route::get('colaboradores', [CompanyMemberController::class, 'index']), 'empresa.membros.index');
         $as(Route::get('colaboradores/novo', [CompanyMemberController::class, 'create']), 'empresa.membros.create');
@@ -426,15 +416,6 @@ $memberRoutes = function (bool $named = true): void {
         $as(Route::put('perfil-colunista/foto', [ColumnistPhotoController::class, 'update']), 'membro.colunas.foto.update');
         $as(Route::delete('perfil-colunista/foto', [ColumnistPhotoController::class, 'destroy']), 'membro.colunas.foto.destroy');
 
-        // ----- Forum dos associados -----
-        $as(Route::get('forum', [ForumController::class, 'index']), 'membro.forum.index');
-        $as(Route::get('forum/novo', [ForumController::class, 'create']), 'membro.forum.create');
-        $as(Route::post('forum', [ForumController::class, 'store']), 'membro.forum.store');
-        $as(Route::get('forum/{slug}', [ForumController::class, 'show']), 'membro.forum.show');
-        $as(Route::get('forum/{slug}/editar', [ForumController::class, 'edit']), 'membro.forum.edit');
-        $as(Route::put('forum/{slug}', [ForumController::class, 'update']), 'membro.forum.update');
-        $as(Route::post('forum/{slug}/responder', [ForumController::class, 'reply']), 'membro.forum.reply');
-        $as(Route::put('forum-respostas/{reply}', [ForumController::class, 'updateReply']), 'membro.forum.reply.update');
 
         $as(Route::get('conta', [MemberAccountController::class, 'edit']), 'membro.conta.edit');
         $as(Route::put('conta', [MemberAccountController::class, 'update']), 'membro.conta.update');
@@ -470,8 +451,37 @@ $editorRoutes = function (bool $named = true): void {
     $rota->name($named ? 'editor.imagem' : Str::random(16));
 };
 
+/*
+ * Forum dos associados.
+ *
+ * UM endereco para todo mundo que entra no portal — diretoria, empresa e
+ * membro —, e nao um conjunto de rotas por painel. A conversa e a mesma para
+ * os tres; o que muda e so o layout em volta, resolvido pelo controller.
+ *
+ * Nasceu duplicado sob /empresa e /membro, e a diretoria ficava de fora: ela
+ * modera mas tambem e associada e quer participar.
+ */
+$forumRoutes = function (bool $named = true): void {
+    $as = fn ($route, string $name) => $route->name($named ? $name : Str::random(16));
+
+    Route::middleware('auth')->group(function () use ($as) {
+        // "novo" vem antes de "{slug}", senao seria lido como endereco de topico.
+        $as(Route::get('forum', [ForumController::class, 'index']), 'forum.index');
+        $as(Route::get('forum/novo', [ForumController::class, 'create']), 'forum.create');
+        $as(Route::post('forum', [ForumController::class, 'store']), 'forum.store');
+        $as(Route::get('forum/{slug}', [ForumController::class, 'show']), 'forum.show');
+        $as(Route::get('forum/{slug}/editar', [ForumController::class, 'edit']), 'forum.edit');
+        $as(Route::put('forum/{slug}', [ForumController::class, 'update']), 'forum.update');
+        $as(Route::post('forum/{slug}/responder', [ForumController::class, 'reply']), 'forum.reply');
+        $as(Route::put('forum-respostas/{reply}', [ForumController::class, 'updateReply']), 'forum.reply.update');
+    });
+};
+
 $portalRoutes();
 Route::prefix('atpg')->group(fn () => $portalRoutes(false));
+
+$forumRoutes();
+Route::prefix('atpg')->group(fn () => $forumRoutes(false));
 
 $editorRoutes();
 Route::prefix('atpg')->group(fn () => $editorRoutes(false));
