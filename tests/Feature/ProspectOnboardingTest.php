@@ -309,7 +309,9 @@ class ProspectOnboardingTest extends TestCase
     {
         Mail::fake();
 
-        $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null, 'email' => 'diretoria@atpg.test']);
+        // Domínio entregável de propósito: `.test` é reservado e o comando o
+        // descarta (ver endereco_de_dominio_que_nao_existe_fica_de_fora).
+        $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null, 'email' => 'diretoria@atpg.net.br']);
         Prospect::factory()->atrasado()->create(['name' => 'Empresa Esquecida']);
 
         $this->artisan('atpg:resumo-associados')->assertSuccessful();
@@ -317,6 +319,23 @@ class ProspectOnboardingTest extends TestCase
         Mail::assertSent(WeeklyFunnelDigestMail::class, function ($mail) use ($admin) {
             return $mail->hasTo($admin->email) && $mail->atrasados->count() === 1;
         });
+    }
+
+    #[Test]
+    public function endereco_de_dominio_que_nao_existe_fica_de_fora(): void
+    {
+        // O admin semeado nasce com `admin@techpg.local`: o servidor responde
+        // "Unrouteable address" e a devolução cai na caixa do contato@.
+        Mail::fake();
+
+        User::factory()->create(['role' => UserRole::Admin, 'abilities' => null, 'email' => 'admin@techpg.local']);
+        $real = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null, 'email' => 'diretoria@atpg.net.br']);
+        Prospect::factory()->atrasado()->create();
+
+        $this->artisan('atpg:resumo-associados')->assertSuccessful();
+
+        Mail::assertSent(WeeklyFunnelDigestMail::class, fn ($mail) => $mail->hasTo($real->email));
+        Mail::assertNotSent(WeeklyFunnelDigestMail::class, fn ($mail) => $mail->hasTo('admin@techpg.local'));
     }
 
     #[Test]

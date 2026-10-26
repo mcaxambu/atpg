@@ -75,6 +75,16 @@ class EnviarResumoDeAssociados extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Dominios que nao existem na internet (RFC 2606 e RFC 6762).
+     *
+     * O usuario semeado do painel nasce com `admin@techpg.local`, e o resumo
+     * tentava entregar la toda segunda: o servidor respondia "Unrouteable
+     * address" e a devolucao caia na caixa do contato@. Quatro semanas, oito
+     * linhas de devolucao, nenhuma utilidade.
+     */
+    private const DOMINIOS_SEM_ENTREGA = ['.local', '.localhost', '.test', '.invalid', '.example'];
+
     /** @return array<int, string> */
     private function destinatarios(): array
     {
@@ -82,14 +92,36 @@ class EnviarResumoDeAssociados extends Command
             return [$teste];
         }
 
-        return User::query()
+        $todos = User::query()
             ->where('role', UserRole::Admin)
             ->whereNotNull('email')
             ->get()
             ->filter(fn (User $u) => $u->canAccessModule(AdminModule::Crm))
             ->pluck('email')
             ->unique()
-            ->values()
-            ->all();
+            ->values();
+
+        [$entregaveis, $descartados] = $todos->partition(fn (string $email) => $this->podeReceber($email));
+
+        foreach ($descartados as $email) {
+            // Avisa em vez de silenciar: endereco de mentira no painel e um
+            // problema de cadastro, nao um detalhe deste comando.
+            $this->warn("Ignorado (domínio não existe na internet): {$email}");
+        }
+
+        return $entregaveis->all();
+    }
+
+    private function podeReceber(string $email): bool
+    {
+        $dominio = strtolower((string) strrchr($email, '@'));
+
+        foreach (self::DOMINIOS_SEM_ENTREGA as $sufixo) {
+            if (str_ends_with($dominio, $sufixo)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
