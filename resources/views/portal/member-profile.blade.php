@@ -2,6 +2,11 @@
 
 @section('title', $member->name . ' | Portal Associação Tech PG')
 
+{{-- Imagem do compartilhamento: a propria capa, e nao o logo da associacao. --}}
+@if ($member->photo_path)
+    @section('meta_image', asset('storage/' . $member->photo_path))
+@endif
+
 @section('content')
 <section class="profile-page">
     <a class="back-link" href="{{ route('members.index') }}">Voltar para membros</a>

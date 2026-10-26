@@ -2,6 +2,11 @@
 
 @section('title', $post->title . ' | Portal Associação Tech PG')
 
+{{-- Imagem do compartilhamento: a propria capa, e nao o logo da associacao. --}}
+@if ($post->cover_image)
+    @section('meta_image', asset('storage/' . $post->cover_image))
+@endif
+
 @section('content')
 <article class="post-page">
     <a class="back-link" href="{{ route('posts.index') }}">Voltar para notícias</a>

@@ -2,6 +2,11 @@
 
 @section('title', $company->name . ' | Portal Associação Tech PG')
 
+{{-- Imagem do compartilhamento: a propria capa, e nao o logo da associacao. --}}
+@if ($company->logo_path)
+    @section('meta_image', asset('storage/' . $company->logo_path))
+@endif
+
 @section('content')
 <section class="profile-page">
     <a class="back-link" href="{{ route('companies.index') }}">Voltar para empresas</a>

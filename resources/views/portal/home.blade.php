@@ -83,12 +83,19 @@
         </div>
         <div class="home-events-list">
             @foreach ($latestEvents as $event)
-                <a class="home-event-card" href="{{ route('events.show', $event) }}">
+                {{-- A capa do evento aparece aqui: cadastrada no painel, ela só
+                     era exibida na página do evento, e quem passava pela home
+                     nunca via. --}}
+                <a class="home-event-card @if ($event->cover_image) has-cover @endif" href="{{ route('events.show', $event) }}">
                     <span>{{ $event->event_date?->format('d/m') ?: 'Em breve' }}</span>
                     <div>
                         <strong>{{ $event->title }}</strong>
                         <small>{{ $event->type }} @if($event->location) / {{ $event->location }} @endif</small>
                     </div>
+                    @if ($event->cover_image)
+                        <img class="home-event-cover" src="{{ asset('storage/' . $event->cover_image) }}"
+                             alt="" loading="lazy">
+                    @endif
                 </a>
             @endforeach
         </div>

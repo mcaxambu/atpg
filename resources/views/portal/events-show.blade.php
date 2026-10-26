@@ -2,6 +2,11 @@
 
 @section('title', $event->title . ' | Portal Associação Tech PG')
 
+{{-- Imagem do compartilhamento: a propria capa, e nao o logo da associacao. --}}
+@if ($event->cover_image)
+    @section('meta_image', asset('storage/' . $event->cover_image))
+@endif
+
 @section('content')
 <article class="post-page">
     <a class="back-link" href="{{ route('events') }}">Voltar para eventos</a>

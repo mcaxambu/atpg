@@ -15,6 +15,11 @@
             <article>
                 <div class="event-date">{{ $event->event_date?->format('d/m/Y') ?: 'Data a definir' }}</div>
                 <div class="event-body">
+                    @if ($event->cover_image)
+                        <img class="event-cover" src="{{ asset('storage/' . $event->cover_image) }}"
+                             alt="Capa {{ $event->title }}" loading="lazy">
+                    @endif
+
                     <span class="segment">{{ $event->type }}</span>
                     <h3>{{ $event->title }}</h3>
                     <p>{{ $event->description_excerpt }}</p>

@@ -4169,3 +4169,44 @@ h3,
     margin-left: 0;
     margin-right: 0;
 }
+
+/* =========================================================================
+   Capa do evento nas listagens.
+
+   A capa e cadastrada no painel e, ate 26/10/2026, so aparecia na pagina do
+   proprio evento: quem passava pela home ou pela agenda nunca via a imagem.
+   ========================================================================= */
+
+/* Agenda completa: a capa abre o bloco do evento. */
+.event-cover {
+    display: block;
+    width: 100%;
+    max-height: 240px;
+    margin-bottom: 14px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Home: miniatura ao lado do texto, sem empurrar a data nem o titulo.
+
+   A terceira coluna so existe quando ha capa (`has-cover`); sem ela, o cartao
+   mantem exatamente o desenho antigo. */
+.home-event-card.has-cover {
+    grid-template-columns: 86px 1fr 96px;
+}
+
+.home-event-cover {
+    width: 96px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+}
+
+@media (max-width: 640px) {
+    /* No celular a miniatura sai: o cartao ja fica apertado com data e titulo. */
+    .home-event-card.has-cover { grid-template-columns: 86px 1fr; }
+    .home-event-cover { display: none; }
+
+    .event-cover { max-height: 180px; }
+}
