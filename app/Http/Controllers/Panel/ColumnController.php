@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Panel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Panel\ColumnRequest;
 use App\Models\Post;
+use App\Support\PanelContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,7 @@ class ColumnController extends Controller
             'columns' => $this->minhasColunas($request)->latest()->paginate(20),
             'columnist' => $request->user()->columnist(),
             'rotaBase' => $this->rotaBase($request),
-            'layout' => $request->user()->isCompany() ? 'layouts.company' : 'layouts.membro',
+            'layout' => PanelContext::layout($request),
         ]);
     }
 
@@ -104,7 +105,7 @@ class ColumnController extends Controller
 
     private function rotaBase(Request $request): string
     {
-        return $request->user()->isCompany() ? 'empresa.colunas' : 'membro.colunas';
+        return PanelContext::noPainelDaEmpresa($request) ? 'empresa.colunas' : 'membro.colunas';
     }
 
     private function form(Request $request, Post $post): View
@@ -113,7 +114,7 @@ class ColumnController extends Controller
             'post' => $post,
             'columnist' => $request->user()->columnist(),
             'rotaBase' => $this->rotaBase($request),
-            'layout' => $request->user()->isCompany() ? 'layouts.company' : 'layouts.membro',
+            'layout' => PanelContext::layout($request),
         ]);
     }
 

@@ -24,17 +24,35 @@ class EnsureUserHasRole
             abort(403);
         }
 
-        if ($user->role !== $expected) {
+        /*
+         * Quem e da diretoria E tem cadastro proprio alcanca os dois paineis.
+         *
+         * Gente da diretoria costuma ser associada tambem: o secretario tem a
+         * empresa dele no portal. Com um papel por acesso, essa pessoa
+         * precisava de DOIS logins, com dois e-mails — e, na pratica, ficava
+         * sem conseguir cuidar da propria empresa, porque todo endereco do
+         * painel da empresa a devolvia para o painel da diretoria.
+         *
+         * O vinculo e que manda: admin sem cadastro ligado continua sendo so
+         * diretoria.
+         */
+        $temOutroPainel = $user->isAdmin() && match ($expected) {
+            UserRole::Company => $user->company !== null,
+            UserRole::Member => $user->member !== null,
+            default => false,
+        };
+
+        if ($user->role !== $expected && ! $temOutroPainel) {
             return redirect()->to(PanelRedirect::homeFor($user));
         }
 
         // Empresa sem vinculo nao tem o que gerenciar.
-        if ($user->isCompany() && ! $user->company) {
+        if ($expected === UserRole::Company && ! $user->company) {
             abort(403, 'Seu acesso não está vinculado a nenhuma empresa.');
         }
 
         // Membro sem cadastro no diretorio idem.
-        if ($user->isMember() && ! $user->member) {
+        if ($expected === UserRole::Member && ! $user->member) {
             abort(403, 'Seu acesso não está vinculado a nenhum cadastro.');
         }
 

@@ -205,6 +205,83 @@ class ModuleAccessTest extends TestCase
         $this->actingAs($user)->get('/empresa')->assertRedirect();
     }
 
+    // ----- Diretoria que também é associada -----
+
+    #[Test]
+    public function diretoria_ligada_a_uma_empresa_abre_o_painel_dela(): void
+    {
+        /*
+            Quem é da diretoria costuma ser associado também. Antes desta
+            regra, essa pessoa precisava de DOIS logins, com dois e-mails, e
+            na prática ficava sem cuidar da própria empresa: todo endereço do
+            painel da empresa a devolvia para o painel da diretoria.
+        */
+        $company = Company::factory()->create();
+        $diretor = User::factory()->create([
+            'role' => UserRole::Admin,
+            'abilities' => null,
+            'company_id' => $company->id,
+        ]);
+
+        $this->actingAs($diretor)->get('/empresa')->assertOk();
+        $this->actingAs($diretor)->get('/empresa/vagas')->assertOk();
+
+        // E o painel da diretoria continua aberto para ele.
+        $this->actingAs($diretor)->get('/admin')->assertOk();
+    }
+
+    #[Test]
+    public function diretoria_sem_vinculo_continua_so_na_diretoria(): void
+    {
+        $diretor = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null, 'company_id' => null]);
+
+        $this->actingAs($diretor)->get('/empresa')->assertRedirect(route('admin.dashboard'));
+        $this->actingAs($diretor)->get('/membro')->assertRedirect(route('admin.dashboard'));
+    }
+
+    #[Test]
+    public function a_diretoria_ligada_so_alcanca_a_propria_empresa(): void
+    {
+        // O vínculo abre o painel da empresa DELE, não o das outras.
+        $minha = Company::factory()->create(['name' => 'Minha Empresa']);
+        $outra = Company::factory()->create(['name' => 'Empresa Alheia']);
+
+        $diretor = User::factory()->create([
+            'role' => UserRole::Admin,
+            'abilities' => null,
+            'company_id' => $minha->id,
+        ]);
+
+        $this->actingAs($diretor)->get('/empresa/perfil')
+            ->assertOk()
+            ->assertSee('Minha Empresa')
+            ->assertDontSee('Empresa Alheia');
+    }
+
+    #[Test]
+    public function o_menu_oferece_os_dois_caminhos(): void
+    {
+        $company = Company::factory()->create();
+        $diretor = User::factory()->create([
+            'role' => UserRole::Admin,
+            'abilities' => null,
+            'company_id' => $company->id,
+        ]);
+
+        $this->actingAs($diretor)->get('/admin')->assertOk()->assertSee('Painel da minha empresa');
+        $this->actingAs($diretor)->get('/empresa')->assertOk()->assertSee('Painel da diretoria');
+    }
+
+    #[Test]
+    public function a_empresa_comum_nao_ganha_atalho_para_a_diretoria(): void
+    {
+        $company = Company::factory()->create();
+        $user = User::factory()->create(['role' => UserRole::Company, 'company_id' => $company->id]);
+
+        $this->actingAs($user)->get('/empresa')->assertOk()->assertDontSee('Painel da diretoria');
+        $this->actingAs($user)->get('/admin')->assertRedirect(route('empresa.dashboard'));
+    }
+
     // ----- Menu agrupado por assunto -----
 
     #[Test]

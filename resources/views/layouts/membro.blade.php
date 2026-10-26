@@ -9,6 +9,10 @@
             : []),
         ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('forum.index'), 'active' => request()->routeIs('forum.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('membro.conta.edit'), 'active' => request()->routeIs('membro.conta.*')],
+        // Caminho de volta para quem e da diretoria e tem cadastro de membro.
+        ...(auth()->user()?->isAdmin()
+            ? [['label' => 'Painel da diretoria', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => false]]
+            : []),
     ];
 @endphp
 <!doctype html>

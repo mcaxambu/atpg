@@ -116,10 +116,29 @@ class UserController extends Controller
 
         $role = UserRole::from($data['role']);
 
-        // Cada papel guarda so o vinculo que faz sentido para ele; assim trocar
-        // o papel de um usuario nao deixa um vinculo orfao para tras.
-        $data['company_id'] = $role === UserRole::Company ? ($data['company_id'] ?? null) : null;
-        $data['member_id'] = $role === UserRole::Member ? ($data['member_id'] ?? null) : null;
+        /*
+         * Cada papel guarda so o vinculo que faz sentido para ele; assim
+         * trocar o papel de um usuario nao deixa um vinculo orfao para tras.
+         *
+         * A DIRETORIA e a excecao: quem e da diretoria costuma ser associado
+         * tambem, e o vinculo aqui e o que da a essa pessoa o painel da
+         * empresa (ou o do membro) sem precisar de um segundo login. Admin sem
+         * vinculo continua sendo so diretoria.
+         */
+        $data['company_id'] = in_array($role, [UserRole::Company, UserRole::Admin], true)
+            ? ($data['company_id'] ?? null)
+            : null;
+
+        $data['member_id'] = in_array($role, [UserRole::Member, UserRole::Admin], true)
+            ? ($data['member_id'] ?? null)
+            : null;
+
+        // Dois cadastros no mesmo acesso nao dizem qual painel e o "meu".
+        if ($role === UserRole::Admin && filled($data['company_id']) && filled($data['member_id'])) {
+            throw ValidationException::withMessages([
+                'company_id' => 'Ligue este acesso a uma empresa OU a um cadastro de membro, não aos dois.',
+            ]);
+        }
 
         if ($role === UserRole::Company && blank($data['company_id'])) {
             throw ValidationException::withMessages([

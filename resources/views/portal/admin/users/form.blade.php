@@ -61,11 +61,50 @@
             </div>
         </x-admin.field>
 
+        {{--
+            Diretoria: vínculo OPCIONAL com o próprio cadastro.
+
+            Quem é da diretoria costuma ser associado também. Com o vínculo,
+            a mesma conta abre o painel da empresa (ou o do membro) sem
+            precisar de um segundo login com outro e-mail.
+        --}}
+        <div x-show="role === 'admin'" x-cloak class="mt-4 space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                <strong class="font-medium text-gray-800 dark:text-white/90">Esta pessoa também é associada?</strong>
+                <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+                    Ligue o acesso ao cadastro dela e a mesma conta passa a abrir também o painel da empresa ou do membro.
+                    Deixe em branco se ela for só da diretoria. Escolha um dos dois, não os dois.
+                </span>
+            </p>
+
+            <x-admin.field label="Empresa dela no portal" name="company_id">
+                <select name="company_id" :disabled="role !== 'admin'" class="{{ $input }}">
+                    <option value="">— não é empresa associada —</option>
+                    @foreach ($companies as $company)
+                        <option value="{{ $company->id }}" @selected(old('company_id', $user->company_id) == $company->id)>
+                            {{ $company->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </x-admin.field>
+
+            <x-admin.field label="Cadastro dela no diretório de membros" name="member_id">
+                <select name="member_id" :disabled="role !== 'admin'" class="{{ $input }}">
+                    <option value="">— não tem cadastro de membro —</option>
+                    @foreach ($members as $member)
+                        <option value="{{ $member->id }}" @selected(old('member_id', $user->member_id) == $member->id)>
+                            {{ $member->name }}@if ($member->email) — {{ $member->email }}@endif
+                        </option>
+                    @endforeach
+                </select>
+            </x-admin.field>
+        </div>
+
         {{-- Empresa: vínculo obrigatório --}}
         <div x-show="role === 'company'" x-cloak class="mt-4">
             <x-admin.field label="Empresa vinculada" name="company_id"
                            hint="O usuário verá apenas os dados desta empresa e os colaboradores dela.">
-                <select name="company_id" class="{{ $input }}">
+                <select name="company_id" :disabled="role !== 'company'" class="{{ $input }}">
                     <option value="">Selecione a empresa…</option>
                     @foreach ($companies as $company)
                         <option value="{{ $company->id }}" @selected(old('company_id', $user->company_id) == $company->id)>
@@ -80,7 +119,7 @@
         <div x-show="role === 'member'" x-cloak class="mt-4">
             <x-admin.field label="Cadastro do membro" name="member_id"
                            hint="O usuário poderá editar apenas este cadastro do diretório.">
-                <select name="member_id" class="{{ $input }}">
+                <select name="member_id" :disabled="role !== 'member'" class="{{ $input }}">
                     <option value="">Selecione o cadastro…</option>
                     @foreach ($members as $member)
                         <option value="{{ $member->id }}" @selected(old('member_id', $user->member_id) == $member->id)>

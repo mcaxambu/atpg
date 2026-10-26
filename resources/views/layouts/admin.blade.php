@@ -124,6 +124,23 @@
 
     $systemMenu = array_values(array_filter($systemMenu, $allowed));
 
+    /*
+        Atalho para o outro painel de quem tem os dois.
+
+        Quem e da diretoria E tem cadastro proprio (a empresa dele no portal)
+        alterna por aqui, em vez de digitar o endereco ou manter um segundo
+        login com outro e-mail. Entra junto do Dashboard, no topo.
+    */
+    $meuPainel = match (true) {
+        (bool) $currentUser?->company_id => ['label' => 'Painel da minha empresa', 'icon' => 'building', 'route' => route('empresa.dashboard'), 'active' => false],
+        (bool) $currentUser?->member_id => ['label' => 'Meu cadastro de membro', 'icon' => 'users', 'route' => route('membro.perfil.edit'), 'active' => false],
+        default => null,
+    };
+
+    if ($meuPainel && isset($menuGroups[0])) {
+        $menuGroups[0][1][] = $meuPainel;
+    }
+
     $canUseCms = (bool) $currentUser?->canAccessModule('cms');
 
     if (! $canUseCms) {

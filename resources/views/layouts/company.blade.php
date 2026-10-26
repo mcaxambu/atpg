@@ -18,6 +18,11 @@
         ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('empresa.reunioes.index'), 'active' => request()->routeIs('empresa.reunioes.*')],
         ['label' => 'Atas de reunião', 'icon' => 'file', 'route' => route('empresa.atas.index'), 'active' => request()->routeIs('empresa.atas.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('empresa.conta.edit'), 'active' => request()->routeIs('empresa.conta.*')],
+        // Caminho de volta para quem e da diretoria e tem empresa: sem isto a
+        // pessoa entra aqui e fica sem porta de saida para o outro painel.
+        ...(auth()->user()?->isAdmin()
+            ? [['label' => 'Painel da diretoria', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => false]]
+            : []),
     ];
 @endphp
 <!doctype html>

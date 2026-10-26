@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
 use App\Models\Columnist;
+use App\Support\PanelContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -79,7 +80,7 @@ class ColumnistPhotoController extends Controller
 
     private function voltar(Request $request, string $mensagem): RedirectResponse
     {
-        $rota = $request->user()->isCompany() ? 'empresa.colunas.index' : 'membro.colunas.index';
+        $rota = PanelContext::noPainelDaEmpresa($request) ? 'empresa.colunas.index' : 'membro.colunas.index';
 
         return redirect()->route($rota)->with('status', $mensagem);
     }
