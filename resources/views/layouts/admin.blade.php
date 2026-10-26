@@ -12,21 +12,52 @@
 
     $isCms = request()->routeIs('admin.cms.*');
 
-    $mainMenu = [
-        ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')],
-        ['label' => 'Novos associados', 'module' => 'crm', 'icon' => 'handshake', 'route' => route('admin.crm.index'), 'active' => request()->routeIs('admin.crm.index') || request()->routeIs('admin.crm.show') || request()->routeIs('admin.crm.create') || request()->routeIs('admin.crm.edit'), 'badge' => $prospectosAtrasados],
-        ['label' => 'Acompanhamento', 'module' => 'crm', 'icon' => 'check', 'route' => route('admin.crm.onboarding'), 'active' => request()->routeIs('admin.crm.onboarding')],
-        ['label' => 'Membros', 'module' => 'members', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
-        ['label' => 'Membros pendentes', 'module' => 'members', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
-        ['label' => 'Empresas', 'module' => 'companies', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],
-        ['label' => 'Empresas pendentes', 'module' => 'companies', 'icon' => 'inbox', 'route' => route('admin.companies.pending'), 'active' => request()->routeIs('admin.companies.pending'), 'badge' => $pendingCompanies],
-        ['label' => 'Vagas', 'module' => 'jobs', 'icon' => 'file', 'route' => route('admin.jobs.index'), 'active' => request()->routeIs('admin.jobs.index') || request()->routeIs('admin.jobs.show')],
-        ['label' => 'Vagas pendentes', 'module' => 'jobs', 'icon' => 'inbox', 'route' => route('admin.jobs.pending'), 'active' => request()->routeIs('admin.jobs.pending'), 'badge' => $pendingJobs],
-        ['label' => 'Colunas', 'module' => 'columns', 'icon' => 'news', 'route' => route('admin.columns.index'), 'active' => request()->routeIs('admin.columns.index') || request()->routeIs('admin.columns.show') || request()->routeIs('admin.columns.columnists')],
-        ['label' => 'Colunas pendentes', 'module' => 'columns', 'icon' => 'inbox', 'route' => route('admin.columns.pending'), 'active' => request()->routeIs('admin.columns.pending'), 'badge' => $pendingColumns],
-        ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
-        ['label' => 'Especialidades', 'module' => 'specialties', 'icon' => 'tag', 'route' => route('admin.specialties.index'), 'active' => request()->routeIs('admin.specialties.*')],
-        ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
+    /*
+        Menu agrupado por ASSUNTO, e nao numa lista corrida.
+
+        A lista unica ja passava de treze itens e misturava funil, cadastro,
+        vaga e coluna na mesma coluna cinza — achar "Vagas pendentes" virava
+        caca ao tesouro. Cada grupo aqui responde a uma pergunta ("o que tenho
+        de empresa?"), e a lixeira de cada cadastro mora junto do cadastro, nao
+        num "Sistema" distante.
+
+        Grupo sem titulo (o Dashboard) aparece solto no topo: inventar um
+        cabecalho so para um item e ruido.
+    */
+    $menuGroups = [
+        [null, [
+            ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')],
+        ]],
+
+        ['CRM', [
+            ['label' => 'Funil de associados', 'module' => 'crm', 'icon' => 'handshake', 'route' => route('admin.crm.index'), 'active' => request()->routeIs('admin.crm.index') || request()->routeIs('admin.crm.show') || request()->routeIs('admin.crm.create') || request()->routeIs('admin.crm.edit'), 'badge' => $prospectosAtrasados],
+            ['label' => 'Acompanhamento', 'module' => 'crm', 'icon' => 'check', 'route' => route('admin.crm.onboarding'), 'active' => request()->routeIs('admin.crm.onboarding')],
+        ]],
+
+        ['Empresas e membros', [
+            ['label' => 'Empresas', 'module' => 'companies', 'icon' => 'building', 'route' => route('admin.companies.index'), 'active' => request()->routeIs('admin.companies.index') || request()->routeIs('admin.companies.create') || request()->routeIs('admin.companies.edit') || request()->routeIs('admin.companies.show')],
+            ['label' => 'Empresas pendentes', 'module' => 'companies', 'icon' => 'inbox', 'route' => route('admin.companies.pending'), 'active' => request()->routeIs('admin.companies.pending'), 'badge' => $pendingCompanies],
+            ['label' => 'Membros', 'module' => 'members', 'icon' => 'users', 'route' => route('admin.members.index'), 'active' => request()->routeIs('admin.members.index') || request()->routeIs('admin.members.create') || request()->routeIs('admin.members.edit') || request()->routeIs('admin.members.show')],
+            ['label' => 'Membros pendentes', 'module' => 'members', 'icon' => 'inbox', 'route' => route('admin.members.pending'), 'active' => request()->routeIs('admin.members.pending'), 'badge' => $pendingMembers],
+            ['label' => 'Especialidades', 'module' => 'specialties', 'icon' => 'tag', 'route' => route('admin.specialties.index'), 'active' => request()->routeIs('admin.specialties.*')],
+            ['label' => 'Lixeira de empresas', 'module' => 'companies', 'icon' => 'trash', 'route' => route('admin.companies.trash'), 'active' => request()->routeIs('admin.companies.trash')],
+            ['label' => 'Lixeira de membros', 'module' => 'members', 'icon' => 'trash', 'route' => route('admin.members.trash'), 'active' => request()->routeIs('admin.members.trash')],
+        ]],
+
+        ['Vagas', [
+            ['label' => 'Vagas', 'module' => 'jobs', 'icon' => 'file', 'route' => route('admin.jobs.index'), 'active' => request()->routeIs('admin.jobs.index') || request()->routeIs('admin.jobs.show')],
+            ['label' => 'Vagas pendentes', 'module' => 'jobs', 'icon' => 'inbox', 'route' => route('admin.jobs.pending'), 'active' => request()->routeIs('admin.jobs.pending'), 'badge' => $pendingJobs],
+        ]],
+
+        ['Colunas', [
+            ['label' => 'Colunas', 'module' => 'columns', 'icon' => 'news', 'route' => route('admin.columns.index'), 'active' => request()->routeIs('admin.columns.index') || request()->routeIs('admin.columns.show') || request()->routeIs('admin.columns.columnists')],
+            ['label' => 'Colunas pendentes', 'module' => 'columns', 'icon' => 'inbox', 'route' => route('admin.columns.pending'), 'active' => request()->routeIs('admin.columns.pending'), 'badge' => $pendingColumns],
+        ]],
+
+        ['Reuniões', [
+            ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*')],
+            ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
+        ]],
     ];
 
     $moduleIcons = [
@@ -58,10 +89,9 @@
 
     $cmsMenu[] = ['label' => 'Configurações', 'icon' => 'settings', 'route' => route('admin.cms.settings.edit'), 'active' => request()->routeIs('admin.cms.settings.*')];
 
+    // As lixeiras sairam daqui para junto do cadastro a que pertencem.
     $systemMenu = [
         ['label' => 'Usuários', 'module' => 'users', 'icon' => 'shield', 'route' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
-        ['label' => 'Lixeira de empresas', 'module' => 'companies', 'icon' => 'trash', 'route' => route('admin.companies.trash'), 'active' => request()->routeIs('admin.companies.trash')],
-        ['label' => 'Lixeira de membros', 'module' => 'members', 'icon' => 'trash', 'route' => route('admin.members.trash'), 'active' => request()->routeIs('admin.members.trash')],
         ['label' => 'Ver site público', 'icon' => 'globe', 'route' => route('home'), 'active' => false],
     ];
 
@@ -70,7 +100,16 @@
     // Item sem 'module' e livre para todo admin (dashboard, site publico).
     $allowed = fn (array $item) => ! isset($item['module']) || $currentUser?->canAccessModule($item['module']);
 
-    $mainMenu = array_values(array_filter($mainMenu, $allowed));
+    // Filtra item por item e descarta o grupo que ficou vazio: quem nao tem o
+    // modulo de vagas nao deve ver o titulo "Vagas" sozinho na barra.
+    $menuGroups = array_values(array_filter(
+        array_map(
+            fn (array $grupo) => [$grupo[0], array_values(array_filter($grupo[1], $allowed))],
+            $menuGroups
+        ),
+        fn (array $grupo) => $grupo[1] !== []
+    ));
+
     $systemMenu = array_values(array_filter($systemMenu, $allowed));
 
     $canUseCms = (bool) $currentUser?->canAccessModule('cms');
@@ -164,14 +203,17 @@
             </a>
 
             <nav class="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 no-scrollbar">
-                @foreach ([['Gestão', $mainMenu], ['CMS do website', $cmsMenu], ['Sistema', $systemMenu]] as [$groupTitle, $items])
+                @foreach ([...$menuGroups, ['CMS do website', $cmsMenu], ['Sistema', $systemMenu]] as [$groupTitle, $items])
                     @continue (empty($items))
                     <div>
-                        <h2 class="mb-3 flex items-center px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
-                            :class="$store.sidebar.isWide ? 'justify-start' : 'xl:justify-center'">
-                            <span x-show="$store.sidebar.isWide">{{ $groupTitle }}</span>
-                            <span x-show="!$store.sidebar.isWide" x-cloak>&middot;&middot;&middot;</span>
-                        </h2>
+                        {{-- Grupo sem titulo (o Dashboard) nao ganha cabecalho nem o "..." da barra estreita. --}}
+                        @if ($groupTitle)
+                            <h2 class="mb-3 flex items-center px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                                :class="$store.sidebar.isWide ? 'justify-start' : 'xl:justify-center'">
+                                <span x-show="$store.sidebar.isWide">{{ $groupTitle }}</span>
+                                <span x-show="!$store.sidebar.isWide" x-cloak>&middot;&middot;&middot;</span>
+                            </h2>
+                        @endif
 
                         <ul class="flex flex-col gap-1">
                             @foreach ($items as $item)

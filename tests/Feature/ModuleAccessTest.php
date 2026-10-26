@@ -205,6 +205,33 @@ class ModuleAccessTest extends TestCase
         $this->actingAs($user)->get('/empresa')->assertRedirect();
     }
 
+    // ----- Menu agrupado por assunto -----
+
+    #[Test]
+    public function o_menu_mostra_os_grupos_por_assunto(): void
+    {
+        $diretoria = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null]);
+
+        $this->actingAs($diretoria)->get('/admin')
+            ->assertOk()
+            ->assertSeeInOrder(['CRM', 'Empresas e membros', 'Vagas', 'Colunas', 'Reuniões', 'CMS do website', 'Sistema']);
+    }
+
+    #[Test]
+    public function grupo_sem_nenhum_item_liberado_nao_aparece(): void
+    {
+        // Titulo de grupo sozinho e pior do que grupo nenhum: a pessoa procura
+        // os itens embaixo dele e nao acha nada.
+        $soVagas = User::factory()->create(['role' => UserRole::Admin, 'abilities' => ['jobs']]);
+
+        $resposta = $this->actingAs($soVagas)->get('/admin')->assertOk();
+
+        $resposta->assertSee('Vagas');
+        $resposta->assertDontSee('Empresas e membros');
+        $resposta->assertDontSee('CRM');
+        $resposta->assertDontSee('Reuniões');
+    }
+
     #[Test]
     public function membro_sem_cadastro_vinculado_nao_entra(): void
     {
