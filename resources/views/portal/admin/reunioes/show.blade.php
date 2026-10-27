@@ -99,6 +99,11 @@
 @if ($reuniao->checkinAberto())
     <x-admin.card class="mb-6" title="Check-in aberto"
                   subtitle="Mostre o código na sala. Quem chegar registra a própria presença pelo painel.">
+        <x-slot:actions>
+            <x-admin.button :href="route('admin.reunioes.recepcao', $reuniao)" target="_blank" variant="primary" icon="users">
+                Abrir recepção (tablet)
+            </x-admin.button>
+        </x-slot:actions>
         <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <span class="text-xs font-medium uppercase tracking-wide text-gray-400">Código da sala</span>

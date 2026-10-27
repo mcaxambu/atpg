@@ -206,6 +206,90 @@ class MeetingCheckInTest extends TestCase
             ->assertRedirect(route('empresa.dashboard'));
     }
 
+    // ----- Reunião online -----
+
+    #[Test]
+    public function entrar_na_videochamada_pelo_portal_registra_a_presenca(): void
+    {
+        $reuniao = $this->reuniao();
+        $reuniao->update(['online_url' => 'https://meet.google.com/abc-defg-hij']);
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)
+            ->get(route('empresa.reunioes.entrar', $reuniao))
+            ->assertRedirect('https://meet.google.com/abc-defg-hij');
+
+        $presenca->refresh();
+
+        $this->assertTrue((bool) $presenca->attended);
+        $this->assertSame(MeetingAttendance::CHECKIN_ONLINE, $presenca->checked_in_source);
+    }
+
+    #[Test]
+    public function a_reuniao_online_nao_pede_codigo(): void
+    {
+        // Ninguém está numa sala: o código não teria o que provar.
+        $reuniao = $this->reuniao();
+        $reuniao->update(['online_url' => 'https://meet.google.com/abc-defg-hij']);
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)->get(route('empresa.reunioes.entrar', $reuniao));
+
+        $this->assertNotNull($presenca->fresh()->checked_in_at);
+    }
+
+    #[Test]
+    public function fora_da_janela_a_pessoa_entra_na_chamada_sem_registrar(): void
+    {
+        /*
+            Perder a reunião por causa do nosso controle interno seria trocar
+            um problema pequeno por um grande: o link sempre leva à chamada.
+        */
+        $reuniao = $this->reuniao(now()->addWeek());
+        $reuniao->update(['online_url' => 'https://meet.google.com/abc-defg-hij']);
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)
+            ->get(route('empresa.reunioes.entrar', $reuniao))
+            ->assertRedirect('https://meet.google.com/abc-defg-hij');
+
+        $this->assertNull($presenca->fresh()->checked_in_at);
+    }
+
+    #[Test]
+    public function reuniao_sem_link_online_nao_tem_essa_porta(): void
+    {
+        $reuniao = $this->reuniao();
+        [, $user] = $this->convocada($reuniao);
+
+        $this->actingAs($user)->get(route('empresa.reunioes.entrar', $reuniao))->assertNotFound();
+    }
+
+    // ----- A recepção no tablet -----
+
+    #[Test]
+    public function a_recepcao_lista_as_empresas_e_mostra_o_codigo(): void
+    {
+        $reuniao = $this->reuniao();
+        [$company] = $this->convocada($reuniao);
+        $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null]);
+
+        $this->actingAs($admin)->get(route('admin.reunioes.recepcao', $reuniao))
+            ->assertOk()
+            ->assertSee($company->name)
+            ->assertSee('toque para marcar a chegada')
+            ->assertSee($reuniao->fresh()->codigoDeCheckin());
+    }
+
+    #[Test]
+    public function a_empresa_nao_abre_a_recepcao(): void
+    {
+        $reuniao = $this->reuniao();
+        [, $user] = $this->convocada($reuniao);
+
+        $this->actingAs($user)->get(route('admin.reunioes.recepcao', $reuniao))->assertRedirect();
+    }
+
     // ----- Integração com o que já existia -----
 
     #[Test]

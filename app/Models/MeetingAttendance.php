@@ -34,6 +34,15 @@ class MeetingAttendance extends Model
 
     public const CHECKIN_DIRETORIA = 'diretoria';
 
+    /**
+     * Reuniao online: a pessoa entrou na chamada PELO PORTAL.
+     *
+     * Nao e a mesma prova que o codigo da sala — prova que clicou para entrar,
+     * nao que ficou. E o maximo que da para saber sem o Google Workspace, cuja
+     * API de participantes exige conta paga, admin e conta de servico.
+     */
+    public const CHECKIN_ONLINE = 'online';
+
     public function fezCheckin(): bool
     {
         return $this->checked_in_at !== null;
@@ -44,6 +53,7 @@ class MeetingAttendance extends Model
         return match ($this->checked_in_source) {
             self::CHECKIN_EMPRESA => 'check-in da empresa',
             self::CHECKIN_DIRETORIA => 'marcado na recepção',
+            self::CHECKIN_ONLINE => 'entrou pela videochamada',
             default => '',
         };
     }

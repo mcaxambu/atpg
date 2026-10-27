@@ -41,9 +41,12 @@ class CheckInAtMeeting
         }
 
         /*
-         * O código só é exigido de quem se registra sozinho. A diretoria, na
-         * recepção, está vendo a pessoa: pedir o código ali seria burocracia
-         * sem ganho nenhum.
+         * O código só é exigido de quem se registra sozinho, na reunião
+         * presencial — ali ele é a prova de estar no lugar.
+         *
+         * A diretoria, na recepção, está vendo a pessoa. E na reunião online o
+         * código não faria sentido nenhum: ninguém está numa sala. Lá a prova
+         * possível é ter entrado na chamada pelo portal.
          */
         if ($origem === MeetingAttendance::CHECKIN_EMPRESA) {
             $informado = strtoupper(trim((string) $codigo));

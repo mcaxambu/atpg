@@ -43,7 +43,13 @@
                                 <span class="block text-xs text-gray-500 dark:text-gray-400">{{ $reuniao->location }}</span>
                             @endif
                             @if ($reuniao->online_url)
-                                <a href="{{ $reuniao->online_url }}" target="_blank" rel="noopener"
+                                {{--
+                                    O link passa PELO PORTAL: é assim que a
+                                    presença da reunião online fica registrada.
+                                    Não existe como ler quem entrou no Meet sem
+                                    Google Workspace pago.
+                                --}}
+                                <a href="{{ route('empresa.reunioes.entrar', $reuniao) }}" target="_blank" rel="noopener"
                                    class="mt-1 inline-block text-xs font-medium text-brand-500 hover:underline">Entrar na videochamada</a>
                             @endif
                         </div>

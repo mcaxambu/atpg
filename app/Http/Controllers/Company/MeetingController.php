@@ -84,4 +84,29 @@ class MeetingController extends Controller
             default => back(),
         };
     }
+
+    /**
+     * Entra na videochamada PELO PORTAL, registrando a presença no caminho.
+     *
+     * É o que dá para fazer sem Google Workspace: a API que lista quem esteve
+     * numa chamada do Meet existe só na conta paga, com admin e conta de
+     * serviço. Aqui o portal vira a porta de entrada — registra quem clicou
+     * para entrar e encaminha.
+     *
+     * Falha no registro NUNCA segura a pessoa: ela vai para a chamada de
+     * qualquer jeito. Perder a reunião por causa do nosso controle interno
+     * seria trocar um problema pequeno por um grande.
+     */
+    public function entrar(Request $request, Meeting $reuniao, CheckInAtMeeting $checkin): RedirectResponse
+    {
+        abort_unless(filled($reuniao->online_url), 404);
+
+        try {
+            $checkin($reuniao, $request->user()->company, MeetingAttendance::CHECKIN_ONLINE);
+        } catch (\Throwable $erro) {
+            report($erro);
+        }
+
+        return redirect()->away($reuniao->online_url);
+    }
 }
