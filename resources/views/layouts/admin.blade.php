@@ -67,8 +67,11 @@
         ]],
 
         ['Reuniões', [
-            ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*') && ! request()->routeIs('admin.reunioes.participacao*')],
+            ['label' => 'Reuniões', 'module' => 'meetings', 'icon' => 'calendar', 'route' => route('admin.reunioes.index'), 'active' => request()->routeIs('admin.reunioes.*') && ! request()->routeIs('admin.reunioes.participacao*', 'admin.reunioes.cartaz')],
             ['label' => 'Participação', 'module' => 'meetings', 'icon' => 'users', 'route' => route('admin.reunioes.participacao'), 'active' => request()->routeIs('admin.reunioes.participacao*')],
+            // O cartaz é impresso uma vez e vale para todas as reuniões, então
+            // não pertence a nenhuma delas: fica no menu, não dentro de uma.
+            ['label' => 'Cartaz do check-in', 'module' => 'meetings', 'icon' => 'image', 'route' => route('admin.reunioes.cartaz'), 'active' => request()->routeIs('admin.reunioes.cartaz')],
             ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
         ]],
     ];

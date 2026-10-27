@@ -417,4 +417,21 @@ class MeetingCheckInTest extends TestCase
             ->assertSee('Código da sala')
             ->assertSee($reuniao->fresh()->codigoDeCheckin());
     }
+
+    #[Test]
+    public function fora_da_janela_a_recepcao_e_o_cartaz_continuam_a_vista(): void
+    {
+        // Com todas as reuniões no passado, esconder o cartão fazia o check-in
+        // inteiro sumir do sistema: ninguém achava por onde começar.
+        $reuniao = $this->reuniao(now()->subMonth());
+        $this->convocada($reuniao);
+        $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null]);
+
+        $this->actingAs($admin)->get(route('admin.reunioes.show', $reuniao))
+            ->assertOk()
+            ->assertSee('Abrir recepção (tablet)')
+            ->assertSee('Cartaz para imprimir')
+            // Mas o código da sala, não: ele só vale dentro da janela.
+            ->assertDontSee('Código da sala');
+    }
 }

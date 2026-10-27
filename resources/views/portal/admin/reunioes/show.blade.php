@@ -92,19 +92,41 @@
 {{--
     ---------- Check-in ----------
 
-    Só aparece na janela da reunião. O código é para mostrar na sala (projetor,
-    quadro, ou lido em voz alta): sem ele, qualquer associado logado faria
-    check-in de casa, e a presença deixaria de significar presença.
+    O cartão aparece sempre: é por aqui que a diretoria chega à tela de
+    recepção e ao cartaz, e escondê-lo fora da janela fazia o recurso sumir do
+    sistema. O que a janela controla é o registro em si — e o código, que é
+    para mostrar na sala (projetor, quadro, ou lido em voz alta): sem ele,
+    qualquer associado logado faria check-in de casa, e a presença deixaria de
+    significar presença.
 --}}
-@if ($reuniao->checkinAberto())
-    <x-admin.card class="mb-6" title="Check-in aberto"
-                  subtitle="Mostre o código na sala. Quem chegar registra a própria presença pelo painel.">
-        <x-slot:actions>
-            <x-admin.button :href="route('admin.reunioes.recepcao', $reuniao)" target="_blank" variant="primary" icon="users">
-                Abrir recepção (tablet)
-            </x-admin.button>
-        </x-slot:actions>
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+@php
+    $checkinAberto = $reuniao->checkinAberto();
+@endphp
+
+<x-admin.card class="mb-6" :title="$checkinAberto ? 'Check-in aberto' : 'Check-in'"
+              :subtitle="$checkinAberto
+                  ? 'Mostre o código na sala. Quem chegar registra a própria presença pelo painel.'
+                  : 'Abre 1 hora antes da reunião e fecha 3 horas depois do fim.'">
+    <x-slot:actions>
+        <x-admin.button :href="route('admin.reunioes.cartaz')" target="_blank" icon="image">Cartaz para imprimir</x-admin.button>
+        <x-admin.button :href="route('admin.reunioes.recepcao', $reuniao)" target="_blank" variant="primary" icon="users">
+            Abrir recepção (tablet)
+        </x-admin.button>
+    </x-slot:actions>
+
+    @if (! $checkinAberto)
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+            @if ($reuniao->scheduled_at->isFuture())
+                O código da sala e a botoeira de chegada aparecem aqui a partir de
+                <strong class="font-semibold text-gray-700 dark:text-gray-200">{{ $reuniao->scheduled_at->copy()->subHour()->translatedFormat('d/m \à\s H:i') }}</strong>.
+                A tela de recepção já pode ser aberta antes, para testar no tablet.
+            @else
+                A janela desta reunião já fechou. A presença de quem faltou registrar
+                continua editável na lista abaixo.
+            @endif
+        </p>
+    @else
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <span class="text-xs font-medium uppercase tracking-wide text-gray-400">Código da sala</span>
                 <strong class="mt-1 block font-mono text-4xl font-bold tracking-widest text-brand-600 dark:text-brand-400">
@@ -144,8 +166,8 @@
                 @endforeach
             </div>
         </div>
-    </x-admin.card>
-@endif
+    @endif
+</x-admin.card>
 
 {{-- ---------- Presença ---------- --}}
 <x-admin.card title="Lista de presença" subtitle="Confirmações recebidas e presença registrada no dia." :padding="false">
