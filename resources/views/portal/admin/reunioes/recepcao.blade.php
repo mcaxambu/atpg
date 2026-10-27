@@ -13,7 +13,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
     <title>Recepção | {{ $reuniao->title }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/qrcode.js'])
 </head>
 <body class="min-h-full bg-gray-50"
       x-data="{
@@ -67,6 +67,28 @@
             <div class="mb-5 rounded-xl border border-success-200 bg-success-50 px-5 py-3 text-sm font-medium text-success-800">
                 {{ session('status') }}
             </div>
+        @endif
+
+        {{--
+            Este QR é diferente do cartaz plastificado: ele JÁ CARREGA o código
+            desta reunião, então escanear basta — não há nada para digitar.
+            Pode ficar nesta tela, virada para quem chega, ou no telão.
+        --}}
+        @if ($reuniao->checkinAberto())
+            <details class="mb-5 rounded-xl border border-gray-200 bg-white p-5">
+                <summary class="cursor-pointer text-base font-semibold text-gray-900">
+                    Mostrar QR code desta reunião
+                    <span class="ml-1 text-sm font-normal text-gray-500">— escaneou, presença registrada</span>
+                </summary>
+
+                <div class="mt-5 text-center">
+                    <canvas class="mx-auto" data-qr="{{ route('empresa.checkin', ['c' => $reuniao->codigoDeCheckin()]) }}" data-qr-size="300"></canvas>
+                    <p class="mt-3 text-sm text-gray-500">
+                        Vire a tela para quem chega. Quem preferir digitar usa o código
+                        <strong class="font-mono text-gray-900">{{ $reuniao->codigoDeCheckin() }}</strong>.
+                    </p>
+                </div>
+            </details>
         @endif
 
         <input type="search" x-model="busca" placeholder="Buscar empresa…"

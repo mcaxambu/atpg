@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\CheckInPosterController;
 use App\Http\Controllers\Admin\CmsDashboardController;
 use App\Http\Controllers\Admin\CmsModuleController;
 use App\Http\Controllers\Admin\CmsPageController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Company\AccountController as CompanyAccountController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
 use App\Http\Controllers\Company\JobApplicationController as CompanyJobApplicationController;
 use App\Http\Controllers\Company\JobOpeningController as CompanyJobController;
+use App\Http\Controllers\Company\MeetingCheckInController;
 use App\Http\Controllers\Company\MeetingController as CompanyMeetingController;
 use App\Http\Controllers\Company\MeetingMinuteController as CompanyMeetingMinuteController;
 use App\Http\Controllers\Company\MemberController as CompanyMemberController;
@@ -237,6 +239,8 @@ $adminRoutes = function (bool $named = true): void {
             $as(Route::post('reunioes/{reuniao}/presencas', [MeetingController::class, 'saveAttendance']), 'admin.reunioes.presencas');
             $as(Route::post('reunioes/{reuniao}/checkin', [MeetingController::class, 'toggleCheckin']), 'admin.reunioes.checkin');
             $as(Route::get('reunioes/{reuniao}/recepcao', [MeetingReceptionController::class, 'show']), 'admin.reunioes.recepcao');
+            // Cartaz permanente: nao depende de reuniao, por isso fica fora do curinga.
+            $as(Route::get('cartaz-checkin', CheckInPosterController::class), 'admin.reunioes.cartaz');
             $as(Route::post('reunioes/{reuniao}/pauta/{item}/resultado', [MeetingController::class, 'saveOutcome']), 'admin.reunioes.resultado');
             $as(Route::post('reunioes/{reuniao}/encaminhamentos', [MeetingController::class, 'storeActionItem']), 'admin.reunioes.encaminhamentos.store');
             $as(Route::patch('encaminhamentos/{encaminhamento}', [MeetingController::class, 'updateActionItem']), 'admin.encaminhamentos.update');
@@ -341,6 +345,13 @@ $companyRoutes = function (bool $named = true): void {
         $as(Route::post('reunioes/{reuniao}/confirmar', [CompanyMeetingController::class, 'confirm']), 'empresa.reunioes.confirmar');
         $as(Route::post('reunioes/{reuniao}/checkin', [CompanyMeetingController::class, 'checkin']), 'empresa.reunioes.checkin');
         $as(Route::get('reunioes/{reuniao}/entrar', [CompanyMeetingController::class, 'entrar']), 'empresa.reunioes.entrar');
+
+        /*
+         * Destino do QR code impresso. Endereco curto e FIXO de proposito: ele
+         * vai plastificado na parede e precisa valer para toda reuniao.
+         */
+        $as(Route::get('checkin', [MeetingCheckInController::class, 'show']), 'empresa.checkin');
+        $as(Route::post('checkin', [MeetingCheckInController::class, 'store']), 'empresa.checkin.store');
 
         $as(Route::get('atas', [CompanyMeetingMinuteController::class, 'index']), 'empresa.atas.index');
         $as(Route::get('atas/{ata}/baixar', [CompanyMeetingMinuteController::class, 'download']), 'empresa.atas.download');

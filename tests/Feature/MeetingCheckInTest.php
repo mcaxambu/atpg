@@ -290,6 +290,91 @@ class MeetingCheckInTest extends TestCase
         $this->actingAs($user)->get(route('admin.reunioes.recepcao', $reuniao))->assertRedirect();
     }
 
+    // ----- O QR code -----
+
+    #[Test]
+    public function o_qr_encontra_sozinho_a_reuniao_aberta(): void
+    {
+        // O cartaz é plastificado: aponta para um endereço fixo, e quem
+        // descobre qual é a reunião do momento é o portal.
+        $this->reuniao(now()->addWeek());           // futura, não conta
+        $deHoje = $this->reuniao();
+        [, $user] = $this->convocada($deHoje);
+
+        $this->actingAs($user)->get(route('empresa.checkin'))
+            ->assertOk()
+            ->assertSee($deHoje->title)
+            ->assertSee('Código mostrado na sala');
+    }
+
+    #[Test]
+    public function o_qr_da_recepcao_registra_sem_digitar_nada(): void
+    {
+        // Esse QR já carrega o código do dia: escaneou, está registrado.
+        $reuniao = $this->reuniao();
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)
+            ->get(route('empresa.checkin', ['c' => $reuniao->codigoDeCheckin()]))
+            ->assertRedirect(route('empresa.checkin'));
+
+        $this->assertNotNull($presenca->fresh()->checked_in_at);
+    }
+
+    #[Test]
+    public function qr_com_codigo_velho_nao_registra(): void
+    {
+        // O cartaz plastificado nunca carrega código justamente por isto: um
+        // código fotografado valeria para sempre.
+        $reuniao = $this->reuniao();
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)
+            ->get(route('empresa.checkin', ['c' => 'ZZ999']))
+            ->assertRedirect(route('empresa.checkin'));
+
+        $this->assertNull($presenca->fresh()->checked_in_at);
+    }
+
+    #[Test]
+    public function sem_reuniao_agora_o_qr_explica_em_vez_de_dar_erro(): void
+    {
+        $this->reuniao(now()->addWeek());
+        $company = Company::factory()->create();
+        $user = User::factory()->create(['role' => UserRole::Company, 'company_id' => $company->id]);
+
+        $this->actingAs($user)->get(route('empresa.checkin'))
+            ->assertOk()
+            ->assertSee('Nenhuma reunião acontecendo agora');
+    }
+
+    #[Test]
+    public function pela_tela_do_qr_o_codigo_da_sala_registra(): void
+    {
+        $reuniao = $this->reuniao();
+        [, $user, $presenca] = $this->convocada($reuniao);
+
+        $this->actingAs($user)->post(route('empresa.checkin.store'), [
+            'meeting_id' => $reuniao->id,
+            'codigo' => $reuniao->codigoDeCheckin(),
+        ])->assertRedirect(route('empresa.checkin'));
+
+        $this->assertNotNull($presenca->fresh()->checked_in_at);
+    }
+
+    #[Test]
+    public function o_cartaz_aponta_para_o_endereco_fixo_e_nao_para_uma_reuniao(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null]);
+
+        $this->actingAs($admin)->get(route('admin.reunioes.cartaz'))
+            ->assertOk()
+            ->assertSee(route('empresa.checkin'), false)
+            ->assertSee('Registre sua presença')
+            // Espaço para a diretoria escrever o código do dia no plástico.
+            ->assertSee('Código desta reunião');
+    }
+
     // ----- Integração com o que já existia -----
 
     #[Test]

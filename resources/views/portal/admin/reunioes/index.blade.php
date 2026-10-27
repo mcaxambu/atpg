@@ -23,6 +23,8 @@
     <x-slot:title>{{ $total }} {{ $total === 1 ? 'reunião' : 'reuniões' }}</x-slot:title>
     <x-slot:subtitle>{{ $proximas }} agendada(s). Convocação, pauta, presença e encaminhamentos.</x-slot:subtitle>
     <x-slot:actions>
+        {{-- Cartaz permanente do check-in: imprime uma vez e vale para todas. --}}
+        <x-admin.button :href="route('admin.reunioes.cartaz')" target="_blank" icon="image">Cartaz do check-in</x-admin.button>
         <x-admin.button :href="route('admin.reunioes.create')" variant="primary" icon="plus">Nova reunião</x-admin.button>
     </x-slot:actions>
 
