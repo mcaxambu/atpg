@@ -7,6 +7,7 @@ use App\Enums\MeetingStatus;
 use App\Models\Company;
 use App\Models\Meeting;
 use App\Models\MeetingAttendance;
+use App\Models\Member;
 use Illuminate\Support\Collection;
 
 /**
@@ -72,25 +73,22 @@ class MeetingParticipation
     }
 
     /**
-     * Uma linha por empresa, com o histórico dela.
+     * Uma linha por associado convocado — empresa ou pessoa física.
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public static function porEmpresa(): Collection
+    public static function porParticipante(): Collection
     {
         $idsRealizadas = self::reunioesRealizadas()->pluck('id');
 
-        $presencas = MeetingAttendance::query()
-            ->with('company')
+        return MeetingAttendance::query()
+            ->with(['company', 'member'])
             ->get()
-            ->groupBy('company_id');
-
-        return Company::query()
-            ->whereIn('id', $presencas->keys()->filter())
-            ->orderBy('name')
-            ->get()
-            ->map(function (Company $empresa) use ($presencas, $idsRealizadas) {
-                $linhas = $presencas->get($empresa->id, collect());
+            // Agrupa pela chave do participante: ids de empresa e de membro se
+            // repetem, e agrupar so pelo numero juntaria gente diferente.
+            ->groupBy(fn (MeetingAttendance $p) => $p->chaveDoParticipante())
+            ->filter(fn ($linhas, $chave) => $chave !== '')
+            ->map(function (Collection $linhas, string $chave) use ($idsRealizadas) {
                 $emRealizadas = $linhas->whereIn('meeting_id', $idsRealizadas);
 
                 $convocacoes = $linhas->count();
@@ -98,7 +96,8 @@ class MeetingParticipation
                 $compareceu = $emRealizadas->where('attended', true)->count();
 
                 return [
-                    'empresa' => $empresa,
+                    'participante' => $linhas->first()->participante(),
+                    'chave' => $chave,
                     'convocacoes' => $convocacoes,
                     'responderam' => $responderam,
                     'taxa_resposta' => self::porcentagem($responderam, $convocacoes),
@@ -109,19 +108,22 @@ class MeetingParticipation
                         ? null
                         : self::porcentagem($compareceu, $emRealizadas->count()),
                 ];
-            });
+            })
+            ->values()
+            ->sortBy(fn (array $linha) => $linha['participante']?->name)
+            ->values();
     }
 
     /**
-     * O histórico de uma empresa, reunião a reunião.
+     * O histórico de um associado, reunião a reunião.
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public static function historicoDa(Company $empresa): Collection
+    public static function historicoDa(Company|Member $participante): Collection
     {
         return MeetingAttendance::query()
             ->with('meeting')
-            ->where('company_id', $empresa->id)
+            ->doParticipante($participante)
             ->get()
             ->sortByDesc(fn (MeetingAttendance $p) => $p->meeting?->scheduled_at)
             ->values()

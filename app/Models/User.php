@@ -60,6 +60,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Quem esta conta representa numa reunião.
+     *
+     * A empresa vem primeiro: o membro que trabalha numa associada participa
+     * PELA empresa dela, que é a linha que existe na convocação e no quórum.
+     * Só quem não tem empresa nenhuma vale por si — é o associado pessoa
+     * física, que conta igual a uma empresa (decisão do usuário em 06/11).
+     *
+     * A diretoria sem cadastro de associado não representa ninguém: administra
+     * a reunião, não participa dela.
+     */
+    public function participanteDeReuniao(): Company|Member|null
+    {
+        if ($this->company) {
+            return $this->company;
+        }
+
+        if ($this->member) {
+            return $this->member->company ?? $this->member;
+        }
+
+        return null;
+    }
+
+    /**
      * Como a pessoa assina no fórum.
      *
      * Sai do CADASTRO, e não de um apelido escolhido na hora: é a identidade

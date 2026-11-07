@@ -60,7 +60,7 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => 'XX000'])
+            ->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => 'XX000'])
             ->assertSessionHasErrors('codigo');
 
         $presenca->refresh();
@@ -76,7 +76,7 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()])
+            ->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()])
             ->assertRedirect();
 
         $presenca->refresh();
@@ -93,7 +93,7 @@ class MeetingCheckInTest extends TestCase
         $reuniao = $this->reuniao();
         [, $user, $presenca] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->post(route('empresa.reunioes.checkin', $reuniao), [
+        $this->actingAs($user)->post(route('painel.reunioes.checkin', $reuniao), [
             'codigo' => strtolower($reuniao->codigoDeCheckin()),
         ]);
 
@@ -111,7 +111,7 @@ class MeetingCheckInTest extends TestCase
         $this->assertFalse($semana->checkinAberto());
 
         $this->actingAs($user)
-            ->post(route('empresa.reunioes.checkin', $semana), ['codigo' => $semana->codigoDeCheckin()])
+            ->post(route('painel.reunioes.checkin', $semana), ['codigo' => $semana->codigoDeCheckin()])
             ->assertSessionHasErrors('codigo');
 
         $this->assertNull($presenca->fresh()->checked_in_at);
@@ -148,7 +148,7 @@ class MeetingCheckInTest extends TestCase
         $visitante = User::factory()->create(['role' => UserRole::Company, 'company_id' => $outra->id]);
 
         $this->actingAs($visitante)
-            ->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()])
+            ->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()])
             ->assertSessionHasErrors('codigo');
 
         $this->assertSame(0, $reuniao->attendances()->whereNotNull('checked_in_at')->count());
@@ -160,12 +160,12 @@ class MeetingCheckInTest extends TestCase
         $reuniao = $this->reuniao();
         [, $user, $presenca] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
+        $this->actingAs($user)->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
         $primeira = $presenca->fresh()->checked_in_at;
 
         $this->travel(10)->minutes();
 
-        $this->actingAs($user)->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
+        $this->actingAs($user)->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
 
         $this->assertEquals($primeira, $presenca->fresh()->checked_in_at);
     }
@@ -180,7 +180,7 @@ class MeetingCheckInTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin, 'abilities' => null]);
 
         $this->actingAs($admin)
-            ->post(route('admin.reunioes.checkin', $reuniao), ['company_id' => $company->id])
+            ->post(route('admin.reunioes.checkin', $reuniao), ['presenca_id' => $presenca->id])
             ->assertRedirect();
 
         $presenca->refresh();
@@ -188,7 +188,7 @@ class MeetingCheckInTest extends TestCase
         $this->assertSame(MeetingAttendance::CHECKIN_DIRETORIA, $presenca->checked_in_source);
 
         // Erro de clique na porta precisa ser reversível na hora.
-        $this->actingAs($admin)->post(route('admin.reunioes.checkin', $reuniao), ['company_id' => $company->id]);
+        $this->actingAs($admin)->post(route('admin.reunioes.checkin', $reuniao), ['presenca_id' => $presenca->id]);
 
         $presenca->refresh();
         $this->assertFalse((bool) $presenca->attended);
@@ -199,10 +199,10 @@ class MeetingCheckInTest extends TestCase
     public function a_empresa_nao_marca_chegada_pela_tela_da_diretoria(): void
     {
         $reuniao = $this->reuniao();
-        [$company, $user] = $this->convocada($reuniao);
+        [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->post(route('admin.reunioes.checkin', $reuniao), ['company_id' => $company->id])
+            ->post(route('admin.reunioes.checkin', $reuniao), ['presenca_id' => $presenca->id])
             ->assertRedirect(route('empresa.dashboard'));
     }
 
@@ -216,7 +216,7 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->get(route('empresa.reunioes.entrar', $reuniao))
+            ->get(route('painel.reunioes.entrar', $reuniao))
             ->assertRedirect('https://meet.google.com/abc-defg-hij');
 
         $presenca->refresh();
@@ -233,7 +233,7 @@ class MeetingCheckInTest extends TestCase
         $reuniao->update(['online_url' => 'https://meet.google.com/abc-defg-hij']);
         [, $user, $presenca] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->get(route('empresa.reunioes.entrar', $reuniao));
+        $this->actingAs($user)->get(route('painel.reunioes.entrar', $reuniao));
 
         $this->assertNotNull($presenca->fresh()->checked_in_at);
     }
@@ -250,7 +250,7 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->get(route('empresa.reunioes.entrar', $reuniao))
+            ->get(route('painel.reunioes.entrar', $reuniao))
             ->assertRedirect('https://meet.google.com/abc-defg-hij');
 
         $this->assertNull($presenca->fresh()->checked_in_at);
@@ -262,7 +262,7 @@ class MeetingCheckInTest extends TestCase
         $reuniao = $this->reuniao();
         [, $user] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->get(route('empresa.reunioes.entrar', $reuniao))->assertNotFound();
+        $this->actingAs($user)->get(route('painel.reunioes.entrar', $reuniao))->assertNotFound();
     }
 
     // ----- A recepção no tablet -----
@@ -301,7 +301,7 @@ class MeetingCheckInTest extends TestCase
         $deHoje = $this->reuniao();
         [, $user] = $this->convocada($deHoje);
 
-        $this->actingAs($user)->get(route('empresa.checkin'))
+        $this->actingAs($user)->get(route('painel.checkin'))
             ->assertOk()
             ->assertSee($deHoje->title)
             ->assertSee('Código mostrado na sala');
@@ -315,8 +315,8 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->get(route('empresa.checkin', ['c' => $reuniao->codigoDeCheckin()]))
-            ->assertRedirect(route('empresa.checkin'));
+            ->get(route('painel.checkin', ['c' => $reuniao->codigoDeCheckin()]))
+            ->assertRedirect(route('painel.checkin'));
 
         $this->assertNotNull($presenca->fresh()->checked_in_at);
     }
@@ -330,8 +330,8 @@ class MeetingCheckInTest extends TestCase
         [, $user, $presenca] = $this->convocada($reuniao);
 
         $this->actingAs($user)
-            ->get(route('empresa.checkin', ['c' => 'ZZ999']))
-            ->assertRedirect(route('empresa.checkin'));
+            ->get(route('painel.checkin', ['c' => 'ZZ999']))
+            ->assertRedirect(route('painel.checkin'));
 
         $this->assertNull($presenca->fresh()->checked_in_at);
     }
@@ -343,7 +343,7 @@ class MeetingCheckInTest extends TestCase
         $company = Company::factory()->create();
         $user = User::factory()->create(['role' => UserRole::Company, 'company_id' => $company->id]);
 
-        $this->actingAs($user)->get(route('empresa.checkin'))
+        $this->actingAs($user)->get(route('painel.checkin'))
             ->assertOk()
             ->assertSee('Nenhuma reunião acontecendo agora');
     }
@@ -354,10 +354,10 @@ class MeetingCheckInTest extends TestCase
         $reuniao = $this->reuniao();
         [, $user, $presenca] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->post(route('empresa.checkin.store'), [
+        $this->actingAs($user)->post(route('painel.checkin.store'), [
             'meeting_id' => $reuniao->id,
             'codigo' => $reuniao->codigoDeCheckin(),
-        ])->assertRedirect(route('empresa.checkin'));
+        ])->assertRedirect(route('painel.checkin'));
 
         $this->assertNotNull($presenca->fresh()->checked_in_at);
     }
@@ -369,7 +369,7 @@ class MeetingCheckInTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.reunioes.cartaz'))
             ->assertOk()
-            ->assertSee(route('empresa.checkin'), false)
+            ->assertSee(route('painel.checkin'), false)
             ->assertSee('Registre sua presença')
             // Espaço para a diretoria escrever o código do dia no plástico.
             ->assertSee('Código desta reunião');
@@ -386,7 +386,7 @@ class MeetingCheckInTest extends TestCase
         $reuniao->update(['quorum_minimum' => 1]);
         [, $user] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->post(route('empresa.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
+        $this->actingAs($user)->post(route('painel.reunioes.checkin', $reuniao), ['codigo' => $reuniao->codigoDeCheckin()]);
 
         $reuniao->refresh()->load('attendances');
 
@@ -400,7 +400,7 @@ class MeetingCheckInTest extends TestCase
         $reuniao = $this->reuniao();
         [, $user] = $this->convocada($reuniao);
 
-        $this->actingAs($user)->get(route('empresa.reunioes.index'))
+        $this->actingAs($user)->get(route('painel.reunioes.index'))
             ->assertOk()
             ->assertSee('Já está na reunião? Faça seu check-in.');
     }

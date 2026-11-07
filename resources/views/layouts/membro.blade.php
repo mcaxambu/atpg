@@ -8,6 +8,11 @@
             ? [['label' => 'Minhas colunas', 'icon' => 'news', 'route' => route('membro.colunas.index'), 'active' => request()->routeIs('membro.colunas.*')]]
             : []),
         ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('forum.index'), 'active' => request()->routeIs('forum.*')],
+        // O associado sem empresa participa das reunioes por si mesmo; quem
+        // trabalha numa associada responde pela empresa, no painel dela.
+        ...(auth()->user()?->participanteDeReuniao()
+            ? [['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('painel.reunioes.index'), 'active' => request()->routeIs('painel.reunioes.*')]]
+            : []),
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('membro.conta.edit'), 'active' => request()->routeIs('membro.conta.*')],
         // Caminho de volta para quem e da diretoria e tem cadastro de membro.
         ...(auth()->user()?->isAdmin()

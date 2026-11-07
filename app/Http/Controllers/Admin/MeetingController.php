@@ -13,6 +13,7 @@ use App\Models\Meeting;
 use App\Models\MeetingActionItem;
 use App\Models\MeetingAgendaItem;
 use App\Models\MeetingAttendance;
+use App\Models\Member;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -69,16 +70,24 @@ class MeetingController extends Controller
         $reuniao->load([
             'agendaItems.actionItems',
             'attendances.company:id,name,slug',
+            'attendances.member:id,name,slug',
             'actionItems.agendaItem:id,title',
             'minute',
         ]);
 
-        // Empresas aprovadas que ainda nao estao na lista: entraram depois da
-        // reuniao ser criada.
+        // Associados aprovados que ainda nao estao na lista: entraram depois
+        // de a reuniao ser criada.
         $ausentesDaLista = Company::visible()
-            ->whereNotIn('id', $reuniao->attendances->pluck('company_id'))
+            ->whereNotIn('id', $reuniao->attendances->pluck('company_id')->filter())
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name'])
+            ->concat(
+                Member::visible()
+                    ->whereNull('company_id')
+                    ->whereNotIn('id', $reuniao->attendances->pluck('member_id')->filter())
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+            );
 
         return view('portal.admin.reunioes.show', compact('reuniao', 'ausentesDaLista'));
     }
@@ -108,7 +117,7 @@ class MeetingController extends Controller
     }
 
     /**
-     * Recria a lista de convocados a partir das empresas publicadas,
+     * Recria a lista de convocados a partir dos associados publicados,
      * preservando quem ja respondeu.
      */
     public function refreshAttendanceList(Meeting $reuniao): RedirectResponse
@@ -117,7 +126,7 @@ class MeetingController extends Controller
 
         return back()->with('status', $novas === 0
             ? 'A lista já está completa.'
-            : ($novas === 1 ? '1 empresa adicionada à lista.' : "{$novas} empresas adicionadas à lista."));
+            : ($novas === 1 ? '1 associado adicionado à lista.' : "{$novas} associados adicionados à lista."));
     }
 
     /**
@@ -129,9 +138,11 @@ class MeetingController extends Controller
      */
     public function toggleCheckin(Request $request, Meeting $reuniao, CheckInAtMeeting $checkin): RedirectResponse
     {
-        $dados = $request->validate(['company_id' => ['required', 'exists:companies,id']]);
+        // A linha, e nao a empresa: a lista tem empresas e membros pessoa
+        // fisica, e os ids de um e de outro se repetem.
+        $dados = $request->validate(['presenca_id' => ['required', 'integer']]);
 
-        $presenca = $reuniao->attendances()->firstWhere('company_id', $dados['company_id']);
+        $presenca = $reuniao->attendances()->find($dados['presenca_id']);
 
         abort_unless($presenca, 404);
 
@@ -147,7 +158,7 @@ class MeetingController extends Controller
 
         $resultado = $checkin(
             $reuniao,
-            $presenca->company,
+            $presenca->participante(),
             MeetingAttendance::CHECKIN_DIRETORIA
         );
 
@@ -161,10 +172,11 @@ class MeetingController extends Controller
      */
     public function saveAttendance(Request $request, Meeting $reuniao): RedirectResponse
     {
+        // Ids das linhas de presenca — ver o comentario em toggleCheckin.
         $presentes = collect($request->input('presentes', []))->map(fn ($id) => (int) $id);
 
         $reuniao->attendances()->each(function ($presenca) use ($presentes) {
-            $presenca->update(['attended' => $presentes->contains($presenca->company_id)]);
+            $presenca->update(['attended' => $presentes->contains($presenca->id)]);
         });
 
         $reuniao->update(['status' => MeetingStatus::Realizada]);
@@ -268,21 +280,40 @@ class MeetingController extends Controller
     }
 
     /**
-     * Convoca todas as empresas publicadas que ainda nao estao na lista.
+     * Convoca todo associado publicado que ainda nao esta na lista.
+     *
+     * Sao dois universos somados: as empresas associadas e os membros SEM
+     * empresa. O membro que trabalha numa associada ja esta representado pela
+     * empresa dele — convocar os dois contaria a mesma cadeira duas vezes no
+     * quorum.
      */
     private function syncAttendanceList(Meeting $reuniao): int
     {
-        $jaNaLista = $reuniao->attendances()->pluck('company_id');
+        $naLista = $reuniao->attendances()->get(['company_id', 'member_id']);
 
-        $novas = Company::visible()->whereNotIn('id', $jaNaLista)->pluck('id');
+        $empresas = Company::visible()
+            ->whereNotIn('id', $naLista->pluck('company_id')->filter())
+            ->pluck('id');
 
-        foreach ($novas as $companyId) {
+        $membros = Member::visible()
+            ->whereNull('company_id')
+            ->whereNotIn('id', $naLista->pluck('member_id')->filter())
+            ->pluck('id');
+
+        foreach ($empresas as $companyId) {
             $reuniao->attendances()->create([
                 'company_id' => $companyId,
                 'status' => AttendanceStatus::Pendente,
             ]);
         }
 
-        return $novas->count();
+        foreach ($membros as $memberId) {
+            $reuniao->attendances()->create([
+                'member_id' => $memberId,
+                'status' => AttendanceStatus::Pendente,
+            ]);
+        }
+
+        return $empresas->count() + $membros->count();
     }
 }

@@ -6,6 +6,8 @@ use App\Enums\AttendanceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Meeting;
+use App\Models\MeetingAttendance;
+use App\Models\Member;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -24,11 +26,14 @@ class MeetingInvitationController extends Controller
     {
         $reuniao = $this->findByToken($token);
 
-        $reuniao->load(['agendaItems', 'attendances.company:id,name']);
+        $reuniao->load(['agendaItems', 'attendances.company:id,name', 'attendances.member:id,name']);
 
         return view('portal.reuniao.convocacao', [
             'reuniao' => $reuniao,
             'empresas' => Company::visible()->orderBy('name')->get(['id', 'name']),
+            // Associado pessoa fisica: participa por si, entao precisa se
+            // achar na lista. Quem tem empresa responde pela empresa.
+            'membros' => Member::visible()->whereNull('company_id')->orderBy('name')->get(['id', 'name']),
             'confirmadas' => $reuniao->confirmedCount(),
         ]);
     }
@@ -39,21 +44,31 @@ class MeetingInvitationController extends Controller
 
         if (! $reuniao->acceptsConfirmations()) {
             return back()->withErrors([
-                'company_id' => 'O prazo de confirmação desta reunião já encerrou.',
+                'participante' => 'O prazo de confirmação desta reunião já encerrou.',
             ]);
         }
 
         $dados = $request->validate([
-            'company_id' => ['required', 'integer', 'exists:companies,id'],
+            'participante' => ['required', 'string'],
             'status' => ['required', 'in:'.implode(',', array_keys(AttendanceStatus::replyOptions()))],
             'responded_by' => ['required', 'string', 'max:120'],
         ], [
-            'company_id.required' => 'Selecione a empresa.',
+            'participante.required' => 'Selecione quem você representa.',
             'responded_by.required' => 'Informe seu nome.',
         ]);
 
+        // A chave diz empresa OU membro: ids de um e de outro se repetem, e
+        // sem o tipo a confirmacao cairia na linha de outro associado.
+        $participante = MeetingAttendance::participantePorChave($dados['participante']);
+
+        if (! $participante) {
+            return back()->withErrors(['participante' => 'Selecione quem você representa.']);
+        }
+
         $reuniao->attendances()->updateOrCreate(
-            ['company_id' => $dados['company_id']],
+            $participante instanceof Company
+                ? ['company_id' => $participante->id]
+                : ['member_id' => $participante->id],
             [
                 'status' => $dados['status'],
                 'responded_by' => $dados['responded_by'],

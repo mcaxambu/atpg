@@ -15,7 +15,7 @@ class CheckInPosterController extends Controller
 {
     public function __invoke(): View
     {
-        $url = route('empresa.checkin');
+        $url = route('painel.checkin');
 
         return view('portal.admin.reunioes.cartaz', [
             'url' => $url,

@@ -7,7 +7,7 @@
 {{--
     São duas medidas diferentes, e a tela não as mistura:
 
-    RESPOSTA é o que a empresa respondeu à convocação — existe desde a primeira
+    RESPOSTA é o que o associado respondeu à convocação — existe desde a primeira
     reunião agendada. PRESENÇA só existe depois que a diretoria registra a lista
     de presentes, o que encerra a reunião. Reunião futura não entra na conta de
     presença: senão toda reunião marcada contaria como falta de todo mundo.
@@ -26,7 +26,7 @@
             <span class="text-xs text-gray-500 dark:text-gray-400">nenhuma reunião encerrada ainda</span>
         @else
             <strong class="mt-1 block text-2xl font-semibold text-gray-800 dark:text-white/90">{{ $resumo['media_presenca'] }}%</strong>
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $resumo['presentes_por_reuniao'] }} empresas por reunião</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $resumo['presentes_por_reuniao'] }} associados por reunião</span>
         @endif
     </x-admin.card>
 
@@ -54,8 +54,8 @@
 @endif
 
 <x-admin.card :padding="false">
-    <x-slot:title>{{ $linhas->count() }} {{ $linhas->count() === 1 ? 'empresa convocada' : 'empresas convocadas' }}</x-slot:title>
-    <x-slot:subtitle>Clique na empresa para ver reunião a reunião.</x-slot:subtitle>
+    <x-slot:title>{{ $linhas->count() }} {{ $linhas->count() === 1 ? 'associado convocado' : 'associados convocados' }}</x-slot:title>
+    <x-slot:subtitle>Clique no associado para ver reunião a reunião.</x-slot:subtitle>
     <x-slot:actions>
         <x-admin.button :href="route('admin.reunioes.index')" variant="ghost" icon="calendar">Ver reuniões</x-admin.button>
     </x-slot:actions>
@@ -89,11 +89,22 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                 @forelse ($linhas as $linha)
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                        @php
+                            $associado = $linha['participante'];
+                            $ehEmpresa = $associado instanceof \App\Models\Company;
+                            $destino = route('admin.reunioes.participacao.associado', explode(':', $linha['chave']));
+                        @endphp
                         <td class="px-5 py-4">
-                            <a href="{{ route('admin.reunioes.participacao.empresa', $linha['empresa']) }}"
-                               class="flex items-center gap-3">
-                                <x-admin.avatar :photo="$linha['empresa']->logo_path" :initials="$linha['empresa']->initials" :contain="true" />
-                                <span class="text-sm font-medium text-gray-800 hover:text-brand-600 dark:text-white/90">{{ $linha['empresa']->name }}</span>
+                            <a href="{{ $destino }}" class="flex items-center gap-3">
+                                <x-admin.avatar :photo="$ehEmpresa ? $associado->logo_path : $associado->photo_path"
+                                                :initials="$ehEmpresa ? $associado->initials : $associado->avatar_initials"
+                                                :contain="$ehEmpresa" />
+                                <span class="text-sm font-medium text-gray-800 hover:text-brand-600 dark:text-white/90">
+                                    {{ $associado->name }}
+                                    @unless ($ehEmpresa)
+                                        <span class="block text-xs font-normal text-gray-400">associado pessoa física</span>
+                                    @endunless
+                                </span>
                             </a>
                         </td>
 
@@ -117,14 +128,14 @@
                         </td>
 
                         <td class="px-5 py-4 text-right">
-                            <x-admin.button :href="route('admin.reunioes.participacao.empresa', $linha['empresa'])" icon="eye">Abrir</x-admin.button>
+                            <x-admin.button :href="$destino" icon="eye">Abrir</x-admin.button>
                         </td>
                     </tr>
                 @empty
                     <tr>
                         <td colspan="5">
-                            <x-admin.empty-state icon="calendar" title="Nenhuma empresa convocada ainda."
-                                                 description="Quando uma reunião for criada e a lista gerada, as empresas aparecem aqui." />
+                            <x-admin.empty-state icon="calendar" title="Nenhum associado convocado ainda."
+                                                 description="Quando uma reunião for criada e a lista gerada, os associados aparecem aqui." />
                         </td>
                     </tr>
                 @endforelse

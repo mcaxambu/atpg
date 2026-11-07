@@ -82,7 +82,7 @@
                 </summary>
 
                 <div class="mt-5 text-center">
-                    <canvas class="mx-auto" data-qr="{{ route('empresa.checkin', ['c' => $reuniao->codigoDeCheckin()]) }}" data-qr-size="300"></canvas>
+                    <canvas class="mx-auto" data-qr="{{ route('painel.checkin', ['c' => $reuniao->codigoDeCheckin()]) }}" data-qr-size="300"></canvas>
                     <p class="mt-3 text-sm text-gray-500">
                         Vire a tela para quem chega. Quem preferir digitar usa o código
                         <strong class="font-mono text-gray-900">{{ $reuniao->codigoDeCheckin() }}</strong>.
@@ -97,9 +97,9 @@
         <div class="grid gap-3 sm:grid-cols-2">
             @foreach ($presencas as $presenca)
                 <form method="post" action="{{ route('admin.reunioes.checkin', $reuniao) }}"
-                      x-show="busca === '' || '{{ Str::lower($presenca->company?->name) }}'.includes(busca.toLowerCase())">
+                      x-show="busca === '' || '{{ Str::lower($presenca->nomeDoParticipante()) }}'.includes(busca.toLowerCase())">
                     @csrf
-                    <input type="hidden" name="company_id" value="{{ $presenca->company_id }}">
+                    <input type="hidden" name="presenca_id" value="{{ $presenca->id }}">
 
                     <button type="submit"
                             @class([
@@ -112,11 +112,11 @@
                             'bg-success-500 text-white' => $presenca->fezCheckin(),
                             'bg-gray-100 text-gray-400' => ! $presenca->fezCheckin(),
                         ])>
-                            {{ $presenca->fezCheckin() ? '✓' : Str::upper(Str::substr($presenca->company?->name ?? '?', 0, 1)) }}
+                            {{ $presenca->fezCheckin() ? '✓' : Str::upper(Str::substr($presenca->nomeDoParticipante(), 0, 1)) }}
                         </span>
 
                         <span class="min-w-0 flex-1">
-                            <strong class="block truncate text-lg font-semibold text-gray-900">{{ $presenca->company?->name }}</strong>
+                            <strong class="block truncate text-lg font-semibold text-gray-900">{{ $presenca->nomeDoParticipante() }}</strong>
                             <span class="block text-sm {{ $presenca->fezCheckin() ? 'text-success-700' : 'text-gray-400' }}">
                                 {{ $presenca->fezCheckin()
                                     ? 'chegou às '.$presenca->checked_in_at->format('H:i').' · '.$presenca->checkinLabel()

@@ -22,7 +22,7 @@ class GenerateMinuteFromMeeting
 {
     public function __invoke(Meeting $reuniao, ?User $autor = null): MeetingMinute
     {
-        $reuniao->loadMissing(['agendaItems.actionItems', 'attendances.company', 'actionItems']);
+        $reuniao->loadMissing(['agendaItems.actionItems', 'attendances.company', 'attendances.member', 'actionItems']);
 
         $ata = MeetingMinute::create([
             'title' => $reuniao->title,
@@ -79,7 +79,7 @@ class GenerateMinuteFromMeeting
     private function presenca(Meeting $reuniao): string
     {
         $presentes = $reuniao->attendances->where('attended', true)
-            ->map(fn ($p) => $p->company?->name)
+            ->map(fn ($p) => $p->participante()?->name)
             ->filter()
             ->sort()
             ->values();
@@ -90,7 +90,7 @@ class GenerateMinuteFromMeeting
             return $texto.'_Nenhuma presença registrada._';
         }
 
-        $texto .= "Empresas presentes ({$presentes->count()}):\n\n";
+        $texto .= "Associados presentes ({$presentes->count()}):\n\n";
         $texto .= $presentes->map(fn ($nome) => "- {$nome}")->implode("\n");
 
         if ($reuniao->quorum_minimum) {

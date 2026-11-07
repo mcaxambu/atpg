@@ -18,8 +18,8 @@ class MeetingReceptionController extends Controller
     public function show(Meeting $reuniao): View
     {
         return view('portal.admin.reunioes.recepcao', [
-            'reuniao' => $reuniao->load(['attendances.company']),
-            'presencas' => $reuniao->attendances->sortBy(fn ($p) => $p->company?->name)->values(),
+            'reuniao' => $reuniao->load(['attendances.company', 'attendances.member']),
+            'presencas' => $reuniao->attendances->sortBy(fn ($p) => $p->nomeDoParticipante())->values(),
         ]);
     }
 }

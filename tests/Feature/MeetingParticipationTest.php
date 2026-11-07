@@ -92,7 +92,7 @@ class MeetingParticipationTest extends TestCase
         $this->assertNull($resumo['media_presenca']);
         $this->assertSame(0, $resumo['reunioes_realizadas']);
 
-        $linha = MeetingParticipation::porEmpresa()->firstWhere('empresa.id', $empresa->id);
+        $linha = MeetingParticipation::porParticipante()->firstWhere('participante.id', $empresa->id);
         $this->assertNull($linha['taxa_presenca']);
     }
 
@@ -132,10 +132,10 @@ class MeetingParticipationTest extends TestCase
         $this->assertSame(50, $resumo['media_presenca']);   // 1 de 2 convocados
         $this->assertSame(75, $resumo['taxa_resposta']);    // 3 de 4 convocações
 
-        $linhas = MeetingParticipation::porEmpresa();
+        $linhas = MeetingParticipation::porParticipante();
 
-        $this->assertSame(100, $linhas->firstWhere('empresa.id', $presente->id)['taxa_presenca']);
-        $this->assertSame(0, $linhas->firstWhere('empresa.id', $faltante->id)['taxa_presenca']);
+        $this->assertSame(100, $linhas->firstWhere('participante.id', $presente->id)['taxa_presenca']);
+        $this->assertSame(0, $linhas->firstWhere('participante.id', $faltante->id)['taxa_presenca']);
     }
 
     #[Test]
@@ -166,7 +166,7 @@ class MeetingParticipationTest extends TestCase
         $this->convocar($faltou, $empresa, AttendanceStatus::Recusado, compareceu: false);
 
         $resposta = $this->actingAs($this->diretoria())
-            ->get(route('admin.reunioes.participacao.empresa', $empresa))
+            ->get(route('admin.reunioes.participacao.associado', ['empresa', $empresa->id]))
             ->assertOk();
 
         $resposta->assertSee('Assembleia que ela veio');
@@ -183,7 +183,7 @@ class MeetingParticipationTest extends TestCase
         $this->convocar($this->reuniao(MeetingStatus::Agendada, 'Reunião de novembro'), $empresa, AttendanceStatus::Pendente);
 
         $this->actingAs($this->diretoria())
-            ->get(route('admin.reunioes.participacao.empresa', $empresa))
+            ->get(route('admin.reunioes.participacao.associado', ['empresa', $empresa->id]))
             ->assertOk()
             ->assertSee('ainda não encerrada')
             ->assertDontSee('faltou');

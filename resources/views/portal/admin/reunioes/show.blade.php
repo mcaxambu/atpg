@@ -149,10 +149,10 @@
             </p>
 
             <div class="flex flex-wrap gap-2">
-                @foreach ($reuniao->attendances->sortBy(fn ($p) => $p->company?->name) as $presenca)
+                @foreach ($reuniao->attendances->sortBy(fn ($p) => $p->nomeDoParticipante()) as $presenca)
                     <form method="post" action="{{ route('admin.reunioes.checkin', $reuniao) }}">
                         @csrf
-                        <input type="hidden" name="company_id" value="{{ $presenca->company_id }}">
+                        <input type="hidden" name="presenca_id" value="{{ $presenca->id }}">
                         <button type="submit"
                                 @class([
                                     'rounded-lg border px-3 py-2 text-xs font-medium transition',
@@ -160,7 +160,7 @@
                                     'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.04]' => ! $presenca->fezCheckin(),
                                 ])
                                 title="{{ $presenca->fezCheckin() ? $presenca->checkinLabel().' às '.$presenca->checked_in_at->format('H:i') : 'Marcar chegada' }}">
-                            {{ $presenca->fezCheckin() ? '✓ ' : '' }}{{ $presenca->company?->name }}
+                            {{ $presenca->fezCheckin() ? '✓ ' : '' }}{{ $presenca->nomeDoParticipante() }}
                         </button>
                     </form>
                 @endforeach
@@ -175,7 +175,7 @@
         @if ($ausentesDaLista->isNotEmpty())
             <x-admin.confirm-form :action="route('admin.reunioes.lista', $reuniao)" method="post"
                                   icon="plus"
-                                  message="Adicionar {{ $ausentesDaLista->count() }} empresa(s) que entraram depois?">
+                                  message="Adicionar {{ $ausentesDaLista->count() }} associado(s) que entraram depois?">
                 Atualizar lista ({{ $ausentesDaLista->count() }})
             </x-admin.confirm-form>
         @endif
@@ -187,17 +187,22 @@
             <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead class="bg-gray-50 dark:bg-white/[0.02]">
                     <tr>
-                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Empresa</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Associado</th>
                         <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Resposta</th>
                         <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Respondeu</th>
                         <th class="px-5 py-3 text-center text-xs font-medium uppercase tracking-wide text-gray-500">Compareceu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @forelse ($reuniao->attendances->sortBy(fn ($p) => $p->company?->name) as $presenca)
+                    @forelse ($reuniao->attendances->sortBy(fn ($p) => $p->nomeDoParticipante()) as $presenca)
                         <tr>
                             <td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">
-                                {{ $presenca->company?->name ?? '—' }}
+                                {{ $presenca->nomeDoParticipante() }}
+                                {{-- Quem nao tem empresa participa por si; dizer isso evita
+                                     a pergunta "de que empresa e esse nome?" na reuniao. --}}
+                                @if ($presenca->member_id)
+                                    <span class="block text-xs font-normal text-gray-400">associado pessoa física</span>
+                                @endif
                             </td>
                             <td class="px-5 py-3">
                                 <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $presenca->status->badgeClasses() }}">
@@ -213,7 +218,7 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3 text-center">
-                                <input type="checkbox" name="presentes[]" value="{{ $presenca->company_id }}"
+                                <input type="checkbox" name="presentes[]" value="{{ $presenca->id }}"
                                        @checked($presenca->attended)
                                        class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500">
 
@@ -228,8 +233,8 @@
                     @empty
                         <tr>
                             <td colspan="4">
-                                <x-admin.empty-state icon="building" title="Nenhuma empresa na lista."
-                                                     description="Publique empresas no portal para que apareçam aqui." />
+                                <x-admin.empty-state icon="building" title="Nenhum associado na lista."
+                                                     description="Publique empresas ou membros no portal para que apareçam aqui." />
                             </td>
                         </tr>
                     @endforelse

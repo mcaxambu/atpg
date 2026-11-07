@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Participação de '.$empresa->name)
-@section('page_heading', 'Participação de '.$empresa->name)
+@section('title', 'Participação de '.$participante->name)
+@section('page_heading', 'Participação de '.$participante->name)
 
 @section('content')
 @php
@@ -13,7 +13,7 @@
     <div class="space-y-6 xl:col-span-2">
         <x-admin.card :padding="false">
             <x-slot:title>Reunião a reunião</x-slot:title>
-            <x-slot:subtitle>O que a empresa respondeu e se compareceu, da mais recente para a mais antiga.</x-slot:subtitle>
+            <x-slot:subtitle>O que o associado respondeu e se compareceu, da mais recente para a mais antiga.</x-slot:subtitle>
 
             <div class="divide-y divide-gray-100 dark:divide-gray-800">
                 @forelse ($historico as $linha)
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 @empty
-                    <x-admin.empty-state icon="calendar" title="Esta empresa não foi convocada ainda."
+                    <x-admin.empty-state icon="calendar" title="Este associado não foi convocado ainda."
                                          description="Ela aparece aqui a partir da primeira reunião em que entrar na lista." />
                 @endforelse
             </div>
@@ -91,7 +91,12 @@
         </x-admin.card>
 
         <div class="flex flex-wrap gap-2">
-            <x-admin.button :href="route('admin.companies.show', $empresa)" icon="building">Ver cadastro</x-admin.button>
+            {{-- O cadastro de cada um mora em telas diferentes. --}}
+            @if ($participante instanceof \App\Models\Company)
+                <x-admin.button :href="route('admin.companies.show', $participante)" icon="building">Ver cadastro</x-admin.button>
+            @else
+                <x-admin.button :href="route('admin.members.edit', $participante)" icon="users">Ver cadastro</x-admin.button>
+            @endif
             <x-admin.button :href="route('admin.reunioes.participacao')" variant="ghost">Voltar</x-admin.button>
         </div>
     </div>

@@ -98,7 +98,7 @@ class MeetingTest extends TestCase
         $empresa = Company::factory()->create();
 
         $this->post(route('reuniao.confirmar', $reuniao->public_token), [
-            'company_id' => $empresa->id,
+            'participante' => 'empresa:'.$empresa->id,
             'status' => 'confirmado',
             'responded_by' => 'Maria Lima',
         ])->assertRedirect()->assertSessionHas('confirmacao_registrada');
@@ -118,7 +118,7 @@ class MeetingTest extends TestCase
 
         foreach (['confirmado', 'recusado'] as $resposta) {
             $this->post(route('reuniao.confirmar', $reuniao->public_token), [
-                'company_id' => $empresa->id,
+                'participante' => 'empresa:'.$empresa->id,
                 'status' => $resposta,
                 'responded_by' => 'Maria Lima',
             ]);
@@ -140,10 +140,10 @@ class MeetingTest extends TestCase
         $empresa = Company::factory()->create();
 
         $this->post(route('reuniao.confirmar', $reuniao->public_token), [
-            'company_id' => $empresa->id,
+            'participante' => 'empresa:'.$empresa->id,
             'status' => 'confirmado',
             'responded_by' => 'Maria',
-        ])->assertSessionHasErrors('company_id');
+        ])->assertSessionHasErrors('participante');
 
         $this->assertSame(0, $reuniao->attendances()->count());
     }
@@ -155,10 +155,10 @@ class MeetingTest extends TestCase
         $empresa = Company::factory()->create();
 
         $this->post(route('reuniao.confirmar', $reuniao->public_token), [
-            'company_id' => $empresa->id,
+            'participante' => 'empresa:'.$empresa->id,
             'status' => 'confirmado',
             'responded_by' => 'Maria',
-        ])->assertSessionHasErrors('company_id');
+        ])->assertSessionHasErrors('participante');
     }
 
     #[Test]
@@ -182,10 +182,10 @@ class MeetingTest extends TestCase
         $user = User::factory()->forCompany($empresa)->create();
         $reuniao = Meeting::factory()->create();
 
-        $this->actingAs($user)->get(route('empresa.reunioes.index'))->assertOk();
+        $this->actingAs($user)->get(route('painel.reunioes.index'))->assertOk();
 
         $this->actingAs($user)
-            ->post(route('empresa.reunioes.confirmar', $reuniao), ['status' => 'confirmado'])
+            ->post(route('painel.reunioes.confirmar', $reuniao), ['status' => 'confirmado'])
             ->assertRedirect();
 
         $presenca = $reuniao->attendances()->where('company_id', $empresa->id)->firstOrFail();
@@ -205,8 +205,12 @@ class MeetingTest extends TestCase
             $reuniao->attendances()->create(['company_id' => $empresa->id, 'status' => AttendanceStatus::Pendente]);
         }
 
+        // A tela manda o id da LINHA, nao o da empresa: a lista tem empresas
+        // e membros pessoa fisica, cujos ids se repetem.
+        $linhaDoPresente = $reuniao->attendances()->where('company_id', $presente->id)->value('id');
+
         $this->actingAs($this->admin())
-            ->post(route('admin.reunioes.presencas', $reuniao), ['presentes' => [$presente->id]])
+            ->post(route('admin.reunioes.presencas', $reuniao), ['presentes' => [$linhaDoPresente]])
             ->assertRedirect();
 
         $reuniao->refresh();

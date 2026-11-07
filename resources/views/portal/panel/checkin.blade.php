@@ -1,4 +1,5 @@
-@extends('layouts.company')
+{{-- Mesma tela para empresa e membro; o layout vem do controller. --}}
+@extends($layout)
 
 @section('title', 'Check-in')
 
@@ -18,7 +19,7 @@
             </p>
 
             <div class="mt-4">
-                <x-admin.button :href="route('empresa.reunioes.index')" icon="calendar">Ver minhas reuniões</x-admin.button>
+                <x-admin.button :href="route('painel.reunioes.index')" icon="calendar">Ver minhas reuniões</x-admin.button>
             </div>
         </x-admin.card>
     @elseif ($presenca?->fezCheckin())
@@ -28,7 +29,7 @@
 
                 <h2 class="mt-4 text-lg font-semibold text-gray-800 dark:text-white/90">Presença registrada</h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {{ $empresa?->name }} — {{ $reuniao->title }}
+                    {{ $participante?->name }} — {{ $reuniao->title }}
                 </p>
                 <p class="mt-0.5 text-xs text-gray-400">
                     às {{ $presenca->checked_in_at->format('H:i') }}
@@ -38,7 +39,7 @@
     @else
         <x-admin.card :title="$reuniao->title"
                       :subtitle="$reuniao->scheduled_at?->translatedFormat('l, d/m \à\s H:i').($reuniao->location ? ' · '.$reuniao->location : '')">
-            <form method="post" action="{{ route('empresa.checkin.store') }}" class="space-y-4">
+            <form method="post" action="{{ route('painel.checkin.store') }}" class="space-y-4">
                 @csrf
                 <input type="hidden" name="meeting_id" value="{{ $reuniao->id }}">
 
@@ -56,7 +57,7 @@
             </form>
 
             <p class="mt-4 text-center text-xs text-gray-400">
-                Entrando como <strong class="font-medium text-gray-600 dark:text-gray-300">{{ $empresa?->name }}</strong>
+                Entrando como <strong class="font-medium text-gray-600 dark:text-gray-300">{{ $participante?->name }}</strong>
             </p>
         </x-admin.card>
     @endif

@@ -1,4 +1,5 @@
-@extends('layouts.company')
+{{-- Mesma tela para empresa e membro; o layout vem do controller. --}}
+@extends($layout)
 
 @section('title', 'Reuniões')
 
@@ -49,7 +50,7 @@
                                     Não existe como ler quem entrou no Meet sem
                                     Google Workspace pago.
                                 --}}
-                                <a href="{{ route('empresa.reunioes.entrar', $reuniao) }}" target="_blank" rel="noopener"
+                                <a href="{{ route('painel.reunioes.entrar', $reuniao) }}" target="_blank" rel="noopener"
                                    class="mt-1 inline-block text-xs font-medium text-brand-500 hover:underline">Entrar na videochamada</a>
                             @endif
                         </div>
@@ -63,7 +64,7 @@
                         @endif
 
                         @if ($aberta)
-                            <form method="post" action="{{ route('empresa.reunioes.confirmar', $reuniao) }}"
+                            <form method="post" action="{{ route('painel.reunioes.confirmar', $reuniao) }}"
                                   class="flex flex-wrap gap-2">
                                 @csrf
                                 @foreach (\App\Enums\AttendanceStatus::replyOptions() as $valor => $rotulo)
@@ -102,7 +103,7 @@
                                 Digite o código que a diretoria está mostrando na sala. É assim que sua presença fica registrada.
                             </p>
 
-                            <form method="post" action="{{ route('empresa.reunioes.checkin', $reuniao) }}"
+                            <form method="post" action="{{ route('painel.reunioes.checkin', $reuniao) }}"
                                   class="mt-3 flex flex-wrap items-start gap-2">
                                 @csrf
                                 <div>

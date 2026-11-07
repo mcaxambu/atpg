@@ -15,7 +15,7 @@
             ? [['label' => 'Moderar colunas', 'icon' => 'shield', 'route' => route('empresa.moderacao.index'), 'active' => request()->routeIs('empresa.moderacao.*'), 'badge' => \App\Models\Post::columns()->pending()->count()]]
             : []),
         ['label' => 'Fórum', 'icon' => 'quote', 'route' => route('forum.index'), 'active' => request()->routeIs('forum.*')],
-        ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('empresa.reunioes.index'), 'active' => request()->routeIs('empresa.reunioes.*')],
+        ['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('painel.reunioes.index'), 'active' => request()->routeIs('painel.reunioes.*')],
         ['label' => 'Atas de reunião', 'icon' => 'file', 'route' => route('empresa.atas.index'), 'active' => request()->routeIs('empresa.atas.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('empresa.conta.edit'), 'active' => request()->routeIs('empresa.conta.*')],
         // Caminho de volta para quem e da diretoria e tem empresa: sem isto a

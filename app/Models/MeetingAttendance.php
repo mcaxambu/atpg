@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AttendanceStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ class MeetingAttendance extends Model
     protected $fillable = [
         'meeting_id',
         'company_id',
+        'member_id',
         'status',
         'responded_by',
         'responded_at',
@@ -66,6 +68,72 @@ class MeetingAttendance extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    /**
+     * Quem e o convocado desta linha: uma empresa associada OU um membro
+     * pessoa fisica. Nunca os dois — ver a migracao que criou `member_id`.
+     */
+    public function participante(): Company|Member|null
+    {
+        return $this->company ?? $this->member;
+    }
+
+    public function nomeDoParticipante(): string
+    {
+        return $this->participante()?->name ?? 'Associado removido';
+    }
+
+    /**
+     * Identificador de uma linha para formularios e listas.
+     *
+     * Empresa e membro tem ids independentes, entao mandar so o numero
+     * registraria presenca na pessoa errada.
+     */
+    public function chaveDoParticipante(): string
+    {
+        return self::chaveDe($this->participante());
+    }
+
+    public static function chaveDe(Company|Member|null $participante): string
+    {
+        return match (true) {
+            $participante instanceof Company => 'empresa:'.$participante->id,
+            $participante instanceof Member => 'membro:'.$participante->id,
+            default => '',
+        };
+    }
+
+    /**
+     * Resolve a chave de volta no participante, ou null se nao existir.
+     */
+    public static function participantePorChave(?string $chave): Company|Member|null
+    {
+        [$tipo, $id] = array_pad(explode(':', (string) $chave, 2), 2, null);
+
+        return match ($tipo) {
+            'empresa' => Company::find($id),
+            'membro' => Member::find($id),
+            default => null,
+        };
+    }
+
+    /**
+     * Filtra a linha de um participante, seja ele empresa ou membro.
+     */
+    public function scopeDoParticipante(Builder $query, Company|Member|null $participante): Builder
+    {
+        return match (true) {
+            $participante instanceof Company => $query->where('company_id', $participante->id),
+            $participante instanceof Member => $query->where('member_id', $participante->id),
+            // Sem participante nao ha linha nenhuma — e nao a lista inteira.
+            default => $query->whereRaw('1 = 0'),
+        };
     }
 
     public function hasReplied(): bool

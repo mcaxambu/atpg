@@ -5,12 +5,13 @@ namespace App\Actions;
 use App\Models\Company;
 use App\Models\Meeting;
 use App\Models\MeetingAttendance;
+use App\Models\Member;
 
 /**
- * Registra a chegada de uma empresa à reunião.
+ * Registra a chegada de um associado à reunião — empresa ou pessoa física.
  *
- * Um ponto só para os dois caminhos — a empresa pelo celular e a diretoria na
- * recepção —, porque a regra do que significa "presente" tem de ser a mesma
+ * Um ponto só para os dois caminhos — o associado pelo celular e a diretoria
+ * na recepção —, porque a regra do que significa "presente" tem de ser a mesma
  * nos dois. O check-in liga `attended`: é a mesma coluna que a lista de
  * presentes e os relatórios de participação já usam, então nada precisou ser
  * recontado em outro lugar.
@@ -28,11 +29,12 @@ class CheckInAtMeeting
     public const NAO_CONVOCADA = 'nao_convocada';
 
     /**
-     * @param  string|null  $codigo  exigido quando quem registra é a própria empresa
+     * @param  Company|Member|null  $participante  empresa associada ou membro pessoa física
+     * @param  string|null  $codigo  exigido quando quem registra é o próprio associado
      */
     public function __invoke(
         Meeting $reuniao,
-        Company $empresa,
+        Company|Member|null $participante,
         string $origem = MeetingAttendance::CHECKIN_EMPRESA,
         ?string $codigo = null,
     ): string {
@@ -56,10 +58,10 @@ class CheckInAtMeeting
             }
         }
 
-        $presenca = $reuniao->attendances()->firstWhere('company_id', $empresa->id);
+        $presenca = $reuniao->attendances()->doParticipante($participante)->first();
 
-        // Empresa fora da lista de convocação não entra pelo check-in: a lista
-        // é quem define o universo da reunião, e o quórum sai dela.
+        // Quem está fora da lista de convocação não entra pelo check-in: a
+        // lista é quem define o universo da reunião, e o quórum sai dela.
         if (! $presenca) {
             return self::NAO_CONVOCADA;
         }

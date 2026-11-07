@@ -31,8 +31,8 @@ use App\Http\Controllers\Company\AccountController as CompanyAccountController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
 use App\Http\Controllers\Company\JobApplicationController as CompanyJobApplicationController;
 use App\Http\Controllers\Company\JobOpeningController as CompanyJobController;
-use App\Http\Controllers\Company\MeetingCheckInController;
-use App\Http\Controllers\Company\MeetingController as CompanyMeetingController;
+use App\Http\Controllers\Panel\MeetingCheckInController as PanelCheckInController;
+use App\Http\Controllers\Panel\MeetingController as PanelMeetingController;
 use App\Http\Controllers\Company\MeetingMinuteController as CompanyMeetingMinuteController;
 use App\Http\Controllers\Company\MemberController as CompanyMemberController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
@@ -233,7 +233,8 @@ $adminRoutes = function (bool $named = true): void {
             // Participacao vem ANTES do curinga `reunioes/{reuniao}`: depois
             // dele, "participacao" seria lido como id de reuniao.
             $as(Route::get('reunioes/participacao', [MeetingParticipationController::class, 'index']), 'admin.reunioes.participacao');
-            $as(Route::get('reunioes/participacao/{company}', [MeetingParticipationController::class, 'show']), 'admin.reunioes.participacao.empresa');
+            $as(Route::get('reunioes/participacao/{tipo}/{id}', [MeetingParticipationController::class, 'show'])
+                ->whereIn('tipo', ['empresa', 'membro'])->whereNumber('id'), 'admin.reunioes.participacao.associado');
 
             $as(Route::post('reunioes/{reuniao}/lista', [MeetingController::class, 'refreshAttendanceList']), 'admin.reunioes.lista');
             $as(Route::post('reunioes/{reuniao}/presencas', [MeetingController::class, 'saveAttendance']), 'admin.reunioes.presencas');
@@ -341,17 +342,8 @@ $companyRoutes = function (bool $named = true): void {
         $as(Route::put('conta', [CompanyAccountController::class, 'update']), 'empresa.conta.update');
         $as(Route::put('conta/senha', [CompanyAccountController::class, 'updatePassword']), 'empresa.conta.senha');
 
-        $as(Route::get('reunioes', [CompanyMeetingController::class, 'index']), 'empresa.reunioes.index');
-        $as(Route::post('reunioes/{reuniao}/confirmar', [CompanyMeetingController::class, 'confirm']), 'empresa.reunioes.confirmar');
-        $as(Route::post('reunioes/{reuniao}/checkin', [CompanyMeetingController::class, 'checkin']), 'empresa.reunioes.checkin');
-        $as(Route::get('reunioes/{reuniao}/entrar', [CompanyMeetingController::class, 'entrar']), 'empresa.reunioes.entrar');
-
-        /*
-         * Destino do QR code impresso. Endereco curto e FIXO de proposito: ele
-         * vai plastificado na parede e precisa valer para toda reuniao.
-         */
-        $as(Route::get('checkin', [MeetingCheckInController::class, 'show']), 'empresa.checkin');
-        $as(Route::post('checkin', [MeetingCheckInController::class, 'store']), 'empresa.checkin.store');
+        // Reunioes e check-in sairam daqui: viraram enderecos de painel, em
+        // $reuniaoRoutes, porque o membro sem empresa participa igual.
 
         $as(Route::get('atas', [CompanyMeetingMinuteController::class, 'index']), 'empresa.atas.index');
         $as(Route::get('atas/{ata}/baixar', [CompanyMeetingMinuteController::class, 'download']), 'empresa.atas.download');
@@ -499,11 +491,42 @@ $forumRoutes = function (bool $named = true): void {
     });
 };
 
+/*
+ * Reunioes de quem participa delas — empresa associada ou membro pessoa
+ * fisica. Pelo mesmo motivo do forum, UM endereco para todos: o associado sem
+ * empresa vale o mesmo numa reuniao, e o QR do cartaz e um papel so.
+ *
+ * O endereco de check-in e curto e FIXO de proposito: vai plastificado na
+ * parede e precisa valer para toda reuniao que vier.
+ */
+$reuniaoRoutes = function (bool $named = true): void {
+    $as = fn ($route, string $name) => $route->name($named ? $name : Str::random(16));
+
+    Route::middleware('auth')->group(function () use ($as) {
+        $as(Route::get('reunioes', [PanelMeetingController::class, 'index']), 'painel.reunioes.index');
+        $as(Route::post('reunioes/{reuniao}/confirmar', [PanelMeetingController::class, 'confirm']), 'painel.reunioes.confirmar');
+        $as(Route::post('reunioes/{reuniao}/checkin', [PanelMeetingController::class, 'checkin']), 'painel.reunioes.checkin');
+        $as(Route::get('reunioes/{reuniao}/entrar', [PanelMeetingController::class, 'entrar']), 'painel.reunioes.entrar');
+
+        $as(Route::get('checkin', [PanelCheckInController::class, 'show']), 'painel.checkin');
+        $as(Route::post('checkin', [PanelCheckInController::class, 'store']), 'painel.checkin.store');
+    });
+
+    // Enderecos antigos do painel da empresa: QR ja escaneado, link ja salvo.
+    Route::middleware('auth')->group(function () use ($as) {
+        $as(Route::get('empresa/checkin', fn () => redirect()->route('painel.checkin')), 'empresa.checkin');
+        $as(Route::get('empresa/reunioes', fn () => redirect()->route('painel.reunioes.index')), 'empresa.reunioes.index');
+    });
+};
+
 $portalRoutes();
 Route::prefix('atpg')->group(fn () => $portalRoutes(false));
 
 $forumRoutes();
 Route::prefix('atpg')->group(fn () => $forumRoutes(false));
+
+$reuniaoRoutes();
+Route::prefix('atpg')->group(fn () => $reuniaoRoutes(false));
 
 $editorRoutes();
 Route::prefix('atpg')->group(fn () => $editorRoutes(false));

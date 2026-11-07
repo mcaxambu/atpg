@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Company;
+namespace App\Http\Controllers\Panel;
 
 use App\Actions\CheckInAtMeeting;
 use App\Enums\MeetingStatus;
@@ -15,8 +15,9 @@ use Illuminate\View\View;
  * Destino do QR code de check-in.
  *
  * O endereço é FIXO (/checkin) porque o QR vai ser impresso e plastificado:
- * ele precisa valer para toda reunião, para sempre. Quem descobre qual é a
- * reunião é o portal, pela janela de check-in aberta — não o papel na parede.
+ * ele precisa valer para toda reunião, para sempre, e para qualquer associado
+ * — empresa ou pessoa física. Quem descobre qual é a reunião é o portal, pela
+ * janela de check-in aberta, não o papel na parede.
  *
  * Por isso o papel sozinho NÃO registra presença: ele leva à tela certa, e o
  * código mostrado na sala é que confirma. Um QR permanente fotografado uma vez
@@ -40,19 +41,19 @@ class MeetingCheckInController extends Controller
             ->values();
 
         $reuniao = $reunioes->first();
-        $empresa = $request->user()->company;
+        $participante = $request->user()->participanteDeReuniao();
 
-        $presenca = $reuniao?->attendances()->firstWhere('company_id', $empresa?->id);
+        $presenca = $reuniao?->attendances()->doParticipante($participante)->first();
 
         /*
          * Código vindo no próprio QR (o da tela da recepção): registra na hora.
          * É o caminho de um toque — escaneou, está registrado.
          */
         if ($reuniao && $request->filled('c')) {
-            $resultado = $checkin($reuniao, $empresa, MeetingAttendance::CHECKIN_EMPRESA, $request->query('c'));
+            $resultado = $checkin($reuniao, $participante, MeetingAttendance::CHECKIN_EMPRESA, $request->query('c'));
 
             if (in_array($resultado, [CheckInAtMeeting::OK, CheckInAtMeeting::JA_FEITO], true)) {
-                return redirect()->route('empresa.checkin')->with(
+                return redirect()->route('painel.checkin')->with(
                     'status',
                     $resultado === CheckInAtMeeting::OK
                         ? 'Presença registrada. Boa reunião!'
@@ -60,15 +61,16 @@ class MeetingCheckInController extends Controller
                 );
             }
 
-            return redirect()->route('empresa.checkin')
+            return redirect()->route('painel.checkin')
                 ->withErrors(['codigo' => 'O código deste QR não vale para a reunião de agora. Digite o código mostrado na sala.']);
         }
 
-        return view('portal.company.checkin', [
+        return view('portal.panel.checkin', [
             'reuniao' => $reuniao,
             'presenca' => $presenca,
-            'empresa' => $empresa,
+            'participante' => $participante,
             'outras' => $reunioes->skip(1),
+            'layout' => $this->layout($request),
         ]);
     }
 
@@ -86,18 +88,29 @@ class MeetingCheckInController extends Controller
 
         $resultado = $checkin(
             $reuniao,
-            $request->user()->company,
+            $request->user()->participanteDeReuniao(),
             MeetingAttendance::CHECKIN_EMPRESA,
             $dados['codigo']
         );
 
         return match ($resultado) {
-            CheckInAtMeeting::OK => redirect()->route('empresa.checkin')->with('status', 'Presença registrada. Boa reunião!'),
-            CheckInAtMeeting::JA_FEITO => redirect()->route('empresa.checkin')->with('status', 'Sua presença já estava registrada.'),
+            CheckInAtMeeting::OK => redirect()->route('painel.checkin')->with('status', 'Presença registrada. Boa reunião!'),
+            CheckInAtMeeting::JA_FEITO => redirect()->route('painel.checkin')->with('status', 'Sua presença já estava registrada.'),
             CheckInAtMeeting::CODIGO_ERRADO => back()->withErrors(['codigo' => 'Código inválido. Confira o que está sendo mostrado na sala.']),
             CheckInAtMeeting::FORA_DA_JANELA => back()->withErrors(['codigo' => 'O check-in desta reunião não está aberto.']),
-            CheckInAtMeeting::NAO_CONVOCADA => back()->withErrors(['codigo' => 'Sua empresa não está na lista desta reunião. Fale com a diretoria.']),
+            CheckInAtMeeting::NAO_CONVOCADA => back()->withErrors(['codigo' => 'Você não está na lista desta reunião. Fale com a diretoria.']),
             default => back(),
+        };
+    }
+
+    private function layout(Request $request): string
+    {
+        $user = $request->user();
+
+        return match (true) {
+            $user->isAdmin() => 'layouts.admin',
+            $user->isCompany() => 'layouts.company',
+            default => 'layouts.membro',
         };
     }
 }

@@ -4,11 +4,15 @@
 
 @section('content')
 @php
-    $minhaResposta = null;
+    // Quem entrou no portal ja tem dono conhecido: empresa associada ou, para
+    // quem nao tem empresa, o proprio cadastro de membro.
+    $euSou = auth()->user()?->participanteDeReuniao();
 
-    if (auth()->check() && auth()->user()->company_id) {
-        $minhaResposta = $reuniao->attendances->firstWhere('company_id', auth()->user()->company_id);
-    }
+    $minhaResposta = $euSou
+        ? $reuniao->attendances->first(fn ($p) => $p->participante()?->is($euSou))
+        : null;
+
+    $minhaChave = \App\Models\MeetingAttendance::chaveDe($euSou);
 @endphp
 
 <section class="registration-card">
@@ -99,20 +103,36 @@
                         </p>
                     @endif
 
-                    <label>Empresa
-                        <select name="company_id" required @disabled($minhaResposta !== null)>
-                            <option value="">Selecione a empresa</option>
-                            @foreach ($empresas as $empresa)
-                                <option value="{{ $empresa->id }}"
-                                    @selected(old('company_id', $minhaResposta?->company_id) == $empresa->id)>
-                                    {{ $empresa->name }}
-                                </option>
-                            @endforeach
+                    @php $chaveEscolhida = old('participante', $minhaResposta?->chaveDoParticipante() ?: $minhaChave); @endphp
+
+                    <label>Quem você representa
+                        <select name="participante" required @disabled($minhaResposta !== null)>
+                            <option value="">Selecione</option>
+                            <optgroup label="Empresas associadas">
+                                @foreach ($empresas as $empresa)
+                                    <option value="empresa:{{ $empresa->id }}"
+                                        @selected($chaveEscolhida === 'empresa:'.$empresa->id)>
+                                        {{ $empresa->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+
+                            {{-- Associado sem empresa: participa por si, e vale o mesmo. --}}
+                            @if ($membros->isNotEmpty())
+                                <optgroup label="Associados">
+                                    @foreach ($membros as $membro)
+                                        <option value="membro:{{ $membro->id }}"
+                                            @selected($chaveEscolhida === 'membro:'.$membro->id)>
+                                            {{ $membro->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
                         </select>
                     </label>
 
                     @if ($minhaResposta)
-                        <input type="hidden" name="company_id" value="{{ $minhaResposta->company_id }}">
+                        <input type="hidden" name="participante" value="{{ $minhaResposta->chaveDoParticipante() }}">
                     @endif
 
                     <label>Seu nome
@@ -137,7 +157,7 @@
 
                     @if ($confirmadas > 0)
                         <p class="convocacao-contador">
-                            {{ $confirmadas }} {{ $confirmadas === 1 ? 'empresa já confirmou' : 'empresas já confirmaram' }} presença.
+                            {{ $confirmadas }} {{ $confirmadas === 1 ? 'associado já confirmou' : 'associados já confirmaram' }} presença.
                         </p>
                     @endif
                 </form>

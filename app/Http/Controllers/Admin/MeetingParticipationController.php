@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
+use App\Models\MeetingAttendance;
 use App\Support\MeetingParticipation;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +20,7 @@ class MeetingParticipationController extends Controller
     {
         $ordem = $request->query('ordem', 'nome');
 
-        $linhas = MeetingParticipation::porEmpresa();
+        $linhas = MeetingParticipation::porParticipante();
 
         $linhas = match ($ordem) {
             // Sem presença registrada a ordenação por presença é inútil; cai
@@ -28,7 +28,7 @@ class MeetingParticipationController extends Controller
             'presenca' => $linhas->sortByDesc(fn (array $l) => $l['taxa_presenca'] ?? -1),
             'ausencia' => $linhas->sortBy(fn (array $l) => $l['taxa_presenca'] ?? 999),
             'resposta' => $linhas->sortByDesc(fn (array $l) => $l['taxa_resposta']),
-            default => $linhas->sortBy(fn (array $l) => $l['empresa']->name),
+            default => $linhas->sortBy(fn (array $l) => $l['participante']?->name),
         };
 
         return view('portal.admin.reunioes.participacao', [
@@ -38,11 +38,21 @@ class MeetingParticipationController extends Controller
         ]);
     }
 
-    public function show(Company $company): View
+    /**
+     * O histórico de um associado — empresa ou pessoa física.
+     *
+     * O tipo vem no endereço porque os ids de um e de outro se repetem: sem
+     * ele, /participacao/3 abriria a empresa 3 ou o membro 3 ao acaso.
+     */
+    public function show(string $tipo, int $id): View
     {
-        return view('portal.admin.reunioes.participacao-empresa', [
-            'empresa' => $company,
-            'historico' => MeetingParticipation::historicoDa($company),
+        $participante = MeetingAttendance::participantePorChave($tipo.':'.$id);
+
+        abort_unless($participante, 404);
+
+        return view('portal.admin.reunioes.participacao-associado', [
+            'participante' => $participante,
+            'historico' => MeetingParticipation::historicoDa($participante),
         ]);
     }
 }
