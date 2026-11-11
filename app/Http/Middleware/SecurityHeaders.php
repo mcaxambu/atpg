@@ -40,12 +40,13 @@ class SecurityHeaders
         "object-src 'none'",
         "frame-ancestors 'self'",
         "form-action 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+        // O beacon de estatisticas e injetado pela propria Cloudflare na borda.
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
         "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
         "img-src 'self' data: blob: https:",
         "media-src 'self' https:",
-        "connect-src 'self' https://viacep.com.br https://cdn.jsdelivr.net",
+        "connect-src 'self' https://viacep.com.br https://cdn.jsdelivr.net https://cloudflareinsights.com",
         "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
     ];
 
