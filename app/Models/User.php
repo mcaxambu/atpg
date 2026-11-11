@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AdminModule;
 use App\Enums\UserRole;
 use App\Notifications\CompanyAccessInvitation;
+use App\Notifications\RedefinicaoDeSenha;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -202,6 +203,14 @@ class User extends Authenticatable
     public function scopeCompanies(Builder $query): Builder
     {
         return $query->where('role', UserRole::Company);
+    }
+
+    /**
+     * O "esqueci minha senha" em português — ver RedefinicaoDeSenha.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new RedefinicaoDeSenha($token));
     }
 
     public function sendCompanyInvitation(): void

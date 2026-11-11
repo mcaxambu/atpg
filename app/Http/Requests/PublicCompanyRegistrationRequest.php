@@ -39,7 +39,7 @@ class PublicCompanyRegistrationRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'whatsapp' => ['required', 'string', 'regex:/^\(\d{2}\) \d{4,5}-\d{4}$/'],
             'site_url' => ['nullable', 'url', 'max:255'],
-            'logo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
+            'logo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'privacy_consent' => ['accepted'],
         ];
     }

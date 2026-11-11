@@ -112,7 +112,7 @@ class CmsModuleController extends Controller
             'position' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
             'is_active' => ['nullable', 'boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:3072'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ]);
 
         $data['slug'] = $this->uniqueSlug($module, $data['title'], $item);

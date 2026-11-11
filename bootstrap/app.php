@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureUserCanAccessModule;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\ForceHttps;
 use App\Http\Middleware\ProtectPublicForm;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetPortalUrlRoot;
 use App\Support\PanelRedirect;
 use Illuminate\Foundation\Application;
@@ -43,6 +44,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // CSRF ou rota numa requisicao que sera redirecionada.
         $middleware->prependToGroup('web', SetPortalUrlRoot::class);
         $middleware->prependToGroup('web', ForceHttps::class);
+
+        // Vale para toda resposta, inclusive as de erro.
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->alias([
             'public-form' => ProtectPublicForm::class,

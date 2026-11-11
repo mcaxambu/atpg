@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\RedefinicaoDeSenha;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -31,7 +31,10 @@ class PasswordResetTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status');
 
-        Notification::assertSentTo($user, ResetPassword::class);
+        // Nossa notificação, e não a do Laravel: a dela chega em inglês.
+        Notification::assertSentTo($user, RedefinicaoDeSenha::class, function ($notificacao) use ($user) {
+            return str_contains($notificacao->toMail($user)->subject, 'Redefinição de senha');
+        });
     }
 
     #[Test]

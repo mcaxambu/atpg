@@ -47,7 +47,7 @@ class CompanyRequest extends FormRequest
             'rejection_reason' => ['nullable', 'string', 'max:1000', 'required_if:status,'.ModerationStatus::Rejected->value],
             'is_active' => ['nullable', 'boolean'],
             'moderates_columns' => ['nullable', 'boolean'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 

@@ -34,7 +34,7 @@ class CompanyProfileRequest extends FormRequest
             'contact_role' => ['nullable', 'string', 'max:255'],
             'whatsapp' => ['nullable', 'string', 'max:40'],
             'site_url' => ['nullable', 'url', 'max:255'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 

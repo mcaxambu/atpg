@@ -170,7 +170,7 @@
                          class="mb-4 h-24 w-full rounded-xl border border-gray-200 bg-white object-contain p-2 dark:border-gray-700">
                 @endif
 
-                <x-admin.field name="logo" hint="JPG, PNG, WEBP ou SVG, até 2 MB.">
+                <x-admin.field name="logo" hint="JPG, PNG ou WEBP, até 2 MB.">
                     <input type="file" name="logo" accept="image/*"
                            class="block w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:file:bg-brand-500/15 dark:file:text-brand-300">
                 </x-admin.field>
