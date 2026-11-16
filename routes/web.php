@@ -323,6 +323,7 @@ $adminRoutes = function (bool $named = true): void {
         Route::middleware('module:finance')->group(function () use ($as) {
             $as(Route::get('financeiro', [MensalidadeController::class, 'index']), 'admin.financeiro.index');
             $as(Route::post('financeiro/gerar', [MensalidadeController::class, 'gerar']), 'admin.financeiro.gerar');
+            $as(Route::post('financeiro/emitir', [MensalidadeController::class, 'emitir']), 'admin.financeiro.emitir');
             $as(Route::get('financeiro/configuracao', [MensalidadeController::class, 'configuracao']), 'admin.financeiro.configuracao');
             $as(Route::post('financeiro/configuracao', [MensalidadeController::class, 'salvarConfiguracao']), 'admin.financeiro.configuracao.salvar');
             $as(Route::post('financeiro/{mensalidade}/pagar', [MensalidadeController::class, 'pagar']), 'admin.financeiro.pagar');

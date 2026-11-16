@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Mensalidade;
 use App\Models\SiteSetting;
+use App\Services\Asaas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -23,7 +24,7 @@ use Illuminate\View\View;
  */
 class MensalidadeController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, Asaas $asaas): View
     {
         $competencia = $request->query('competencia') ?: Carbon::today()->format('Y-m');
 
@@ -43,6 +44,13 @@ class MensalidadeController extends Controller
             'valorConfigurado' => GerarMensalidades::valorAtual(),
             'diaVencimento' => GerarMensalidades::diaDeVencimento(),
             'isentas' => Company::visible()->where('mensalidade_isenta', true)->count(),
+            'asaasLigado' => $asaas->habilitado(),
+            'asaasAmbiente' => $asaas->ambiente(),
+            // Dito ANTES de emitir: no Vox isto só apareceu quando o Asaas
+            // recusou a cobrança no meio do lote.
+            'semCnpj' => Company::visible()->where('mensalidade_isenta', false)
+                ->where(fn ($q) => $q->whereNull('cnpj')->orWhere('cnpj', ''))
+                ->pluck('name'),
         ]);
     }
 
@@ -66,6 +74,53 @@ class MensalidadeController extends Controller
 
         return redirect()->route('admin.financeiro.index', ['competencia' => $dados['competencia']])
             ->with('status', "{$resultado['geradas']} mensalidade(s) gerada(s); {$resultado['puladas']} já existia(m).");
+    }
+
+    /**
+     * Emite no Asaas as cobranças do mês que ainda não têm.
+     *
+     * Em lote, mas item a item: uma associada sem CNPJ não pode impedir as
+     * outras 26 de serem cobradas. O que falhar volta na tela com nome e
+     * motivo.
+     */
+    public function emitir(Request $request, Asaas $asaas): RedirectResponse
+    {
+        $dados = $request->validate(['competencia' => ['required', 'regex:/^\d{4}-\d{2}$/']]);
+
+        if (! $asaas->habilitado()) {
+            return back()->withErrors(['competencia' => 'O Asaas ainda não está configurado.']);
+        }
+
+        $pendentes = Mensalidade::query()
+            ->daCompetencia($dados['competencia'])
+            ->emAberto()
+            ->whereNull('cobranca_externa_id')
+            ->with('company')
+            ->get();
+
+        $emitidas = 0;
+        $falhas = [];
+
+        foreach ($pendentes as $mensalidade) {
+            try {
+                $cobranca = $asaas->cobrar($mensalidade);
+
+                $mensalidade->update([
+                    'cobranca_externa_id' => $cobranca['id'],
+                    'cobranca_url' => $cobranca['url'],
+                    'cobranca_enviada_em' => now(),
+                ]);
+
+                $emitidas++;
+            } catch (\Throwable $erro) {
+                $falhas[] = ($mensalidade->company?->name ?? 'Empresa').': '.$erro->getMessage();
+            }
+        }
+
+        $volta = redirect()->route('admin.financeiro.index', ['competencia' => $dados['competencia']])
+            ->with('status', "{$emitidas} cobrança(s) emitida(s) no Asaas.");
+
+        return $falhas === [] ? $volta : $volta->withErrors(['emissao' => $falhas]);
     }
 
     /**

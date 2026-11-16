@@ -55,6 +55,12 @@
                         <x-admin.button :href="route('empresa.mensalidades.recibo', $mensalidade)" target="_blank" icon="file">
                             Recibo
                         </x-admin.button>
+                    @elseif ($mensalidade->cobranca_url && $mensalidade->status === \App\Enums\MensalidadeStatus::Pendente)
+                        {{-- Só aparece quando a cobrança existe de verdade: botão
+                             "pagar" que leva a lugar nenhum é pior que não ter. --}}
+                        <x-admin.button :href="$mensalidade->cobranca_url" target="_blank" variant="primary" icon="check">
+                            Pagar
+                        </x-admin.button>
                     @endif
                 </div>
             </div>

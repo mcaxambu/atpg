@@ -46,12 +46,25 @@
         baixa é manual. Dizer isso na tela evita alguém esperar o boleto sair
         sozinho e descobrir no fim do mês que ninguém foi cobrado.
     --}}
-    <x-admin.card title="Cobrança automática">
-        <p class="text-sm text-gray-600 dark:text-gray-300">
-            Ainda não há integração com provedor de pagamento. Hoje o portal <strong>controla</strong> as mensalidades —
-            quem deve, quem pagou, quanto entrou — e a baixa é feita à mão nesta tela. O envio de boleto ou Pix e a
-            baixa automática entram quando o provedor for escolhido, sem refazer nada do que está aqui.
-        </p>
+    <x-admin.card title="Cobrança pelo Asaas">
+        @if (config('asaas.habilitado') && filled(config('asaas.api_key')))
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                Integração ligada no ambiente <strong>{{ config('asaas.ambiente') }}</strong>.
+                Depois de gerar o mês, o botão <strong>Emitir no Asaas</strong> cria as cobranças e o associado recebe
+                o link para pagar por Pix ou boleto. A baixa é automática pelo retorno do Asaas; a baixa manual
+                continua valendo para quem pagar por fora.
+            </p>
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                Endereço do retorno, para colar no painel do Asaas:
+                <code class="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/[0.06]">{{ url('/api/asaas/webhook') }}</code>
+            </p>
+        @else
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                O Asaas ainda não está configurado neste servidor, então a baixa é feita à mão nesta tela.
+                Enquanto isso, o portal continua <strong>controlando</strong> as mensalidades: quem deve, quem pagou,
+                quanto entrou.
+            </p>
+        @endif
     </x-admin.card>
 
     <div class="flex flex-wrap gap-2">

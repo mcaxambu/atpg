@@ -9,6 +9,27 @@
     $mes = \Illuminate\Support\Carbon::parse($competencia.'-01');
 @endphp
 
+{{-- Dito antes de emitir, não descoberto no meio do lote. --}}
+@if ($asaasLigado && $semCnpj->isNotEmpty())
+    <div class="mb-6 rounded-2xl border border-warning-200 bg-warning-50 p-5 text-sm dark:border-warning-500/25 dark:bg-warning-500/10">
+        <strong class="block font-semibold text-warning-800 dark:text-warning-200">
+            {{ $semCnpj->count() }} associada(s) sem CNPJ — o Asaas recusa a cobrança delas
+        </strong>
+        <span class="text-warning-700 dark:text-warning-300">{{ $semCnpj->implode(', ') }}</span>
+    </div>
+@endif
+
+@if ($errors->has('emissao'))
+    <div class="mb-6 rounded-2xl border border-error-200 bg-error-50 p-5 text-sm dark:border-error-500/25 dark:bg-error-500/10">
+        <strong class="block font-semibold text-error-800 dark:text-error-200">Nem todas as cobranças saíram</strong>
+        <ul class="mt-2 list-inside list-disc text-error-700 dark:text-error-300">
+            @foreach ((array) $errors->get('emissao') as $falha)
+                <li>{{ $falha }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 @if ((float) $valorConfigurado <= 0)
     <a href="{{ route('admin.financeiro.configuracao') }}"
        class="mb-6 flex items-center gap-4 rounded-2xl border border-warning-200 bg-warning-50 p-5 dark:border-warning-500/25 dark:bg-warning-500/10">
@@ -46,6 +67,23 @@
     </x-slot:subtitle>
     <x-slot:actions>
         <x-admin.button :href="route('admin.financeiro.configuracao')" icon="settings">Configuração</x-admin.button>
+
+        @php
+            $semCobranca = $mensalidades
+                ->where('status', \App\Enums\MensalidadeStatus::Pendente)
+                ->whereNull('cobranca_externa_id');
+        @endphp
+
+        @if ($asaasLigado && $semCobranca->isNotEmpty())
+            <form method="post" action="{{ route('admin.financeiro.emitir') }}" class="inline-flex"
+                  onsubmit="return confirm('Emitir no Asaas {{ $semCobranca->count() }} cobrança(s)? O associado recebe o link para pagar.');">
+                @csrf
+                <input type="hidden" name="competencia" value="{{ $competencia }}">
+                <x-admin.button type="submit" variant="primary" icon="inbox">
+                    Emitir no Asaas ({{ $semCobranca->count() }})
+                </x-admin.button>
+            </form>
+        @endif
 
         @if ($mensalidades->isEmpty())
             <form method="post" action="{{ route('admin.financeiro.gerar') }}">
@@ -103,6 +141,13 @@
 
                         @if ($mensalidade->observacao)
                             <span class="text-xs italic text-gray-400">{{ $mensalidade->observacao }}</span>
+                        @endif
+
+                        @if ($mensalidade->cobranca_url)
+                            <a href="{{ $mensalidade->cobranca_url }}" target="_blank" rel="noopener noreferrer"
+                               class="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">ver cobrança</a>
+                        @elseif ($asaasLigado && $mensalidade->status === \App\Enums\MensalidadeStatus::Pendente)
+                            <span class="text-xs text-gray-400">sem cobrança emitida</span>
                         @endif
                     </div>
                 </div>

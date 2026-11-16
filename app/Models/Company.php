@@ -49,6 +49,8 @@ class Company extends Model
         'reviewed_by',
         'registration_source',
         'logo_path',
+        'mensalidade_isenta',
+        'asaas_customer_id',
     ];
 
     protected $casts = [

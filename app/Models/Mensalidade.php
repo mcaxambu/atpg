@@ -29,6 +29,7 @@ class Mensalidade extends Model
         'observacao',
         'cobranca_externa_id',
         'cobranca_url',
+        'cobranca_enviada_em',
         'registrado_por',
     ];
 
@@ -36,6 +37,7 @@ class Mensalidade extends Model
         'competencia' => 'date',
         'vencimento' => 'date',
         'pago_em' => 'date',
+        'cobranca_enviada_em' => 'datetime',
         'valor' => 'decimal:2',
         'status' => MensalidadeStatus::class,
     ];
