@@ -17,6 +17,17 @@ Artisan::command('inspire', function () {
  *
  * ATENCAO: isto so acontece se o `schedule:run` estiver no cron do servidor.
  */
+/*
+ * Radar: varre as fontes de madrugada, quando ninguém está no painel e os
+ * sites da região já publicaram o dia anterior.
+ *
+ * Só enfileira — publicar continua sendo clique de gente.
+ */
+Schedule::command('atpg:radar')
+    ->dailyAt('04:30')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
+
 Schedule::command('atpg:resumo-associados')
     ->weeklyOn(1, '08:00')
     ->timezone(config('app.timezone'))

@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ProspectController;
 use App\Http\Controllers\Admin\ProspectInteractionController;
+use App\Http\Controllers\Admin\RadarController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SpecialtyController;
 use App\Http\Controllers\Admin\UserController;
@@ -295,6 +296,14 @@ $adminRoutes = function (bool $named = true): void {
 
         Route::middleware('module:users')->group(function () use ($resource) {
             $resource('usuarios', UserController::class, 'user', 'admin.users');
+        });
+
+        // ----- Radar: o que a varredura automatica encontrou -----
+        Route::middleware('module:radar')->group(function () use ($as) {
+            $as(Route::get('radar', [RadarController::class, 'index']), 'admin.radar.index');
+            $as(Route::post('radar/{radar}/publicar', [RadarController::class, 'publicar']), 'admin.radar.publicar');
+            $as(Route::post('radar/{radar}/descartar', [RadarController::class, 'descartar']), 'admin.radar.descartar');
+            $as(Route::post('radar/{radar}/restaurar', [RadarController::class, 'restaurar']), 'admin.radar.restaurar');
         });
 
         Route::prefix('cms')->middleware('module:cms')->group(function () use ($as, $resource, $named) {

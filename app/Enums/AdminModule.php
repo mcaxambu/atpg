@@ -19,6 +19,7 @@ enum AdminModule: string
     case Meetings = 'meetings';
     case Minutes = 'minutes';
     case Specialties = 'specialties';
+    case Radar = 'radar';
     case Cms = 'cms';
     case Users = 'users';
 
@@ -34,6 +35,7 @@ enum AdminModule: string
             self::Meetings => 'Reuniões',
             self::Minutes => 'Atas de reunião',
             self::Specialties => 'Especialidades',
+            self::Radar => 'Radar',
             self::Cms => 'Site / CMS',
             self::Users => 'Usuários',
         };
@@ -51,6 +53,7 @@ enum AdminModule: string
             self::Meetings => 'Agenda de reuniões, presenças e encaminhamentos.',
             self::Minutes => 'Criação e download das atas.',
             self::Specialties => 'Lista de especialidades usada nos filtros.',
+            self::Radar => 'Fila do que a varredura automática encontrou sobre tecnologia na região.',
             self::Cms => 'Notícias, eventos, páginas e configurações do site.',
             self::Users => 'Criar usuários do painel e definir permissões.',
         };

@@ -28,6 +28,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+     * Leitura automática do Radar (triagem do que as fontes publicam).
+     *
+     * Sem a chave, o radar coleta e guarda os links, mas não classifica nada:
+     * a fila fica com os itens marcados como ilegíveis em vez de silenciar.
+     */
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-haiku-5-5'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

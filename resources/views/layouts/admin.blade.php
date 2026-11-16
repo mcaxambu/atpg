@@ -74,6 +74,14 @@
             ['label' => 'Cartaz do check-in', 'module' => 'meetings', 'icon' => 'image', 'route' => route('admin.reunioes.cartaz'), 'active' => request()->routeIs('admin.reunioes.cartaz')],
             ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
         ]],
+
+        ['Radar', [
+            // O número é o que está esperando decisão: sem ele a fila vira
+            // uma tela que ninguém lembra de abrir.
+            ['label' => 'Achados da semana', 'module' => 'radar', 'icon' => 'search', 'route' => route('admin.radar.index'),
+             'active' => request()->routeIs('admin.radar.*'),
+             'badge' => \App\Models\RadarItem::esperando()->count()],
+        ]],
     ];
 
     $moduleIcons = [
