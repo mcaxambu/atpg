@@ -6,6 +6,8 @@ use App\Enums\RadarStatus;
 use App\Enums\RadarTipo;
 use App\Models\RadarItem;
 use App\Support\LinkPreview;
+use Anthropic\Core\Exceptions\AuthenticationException;
+use App\Support\Radar\ChaveRecusada;
 use App\Support\Radar\Coletor;
 use App\Support\Radar\Fontes;
 use App\Support\Radar\LeitorDeItem;
@@ -40,16 +42,53 @@ class VarrerRadar extends Command
             return self::FAILURE;
         }
 
-        // Sem chave configurada o radar COLETA e guarda os links, mas não
-        // classifica: encher a fila de "não consegui ler" todas as noites
-        // transformaria a tela num monte de lixo que ninguém abre de novo.
-        $semIa = $this->option('sem-ia') || blank(config('services.anthropic.key'));
+        /*
+         * Sem chave utilizável o radar COLETA e guarda os links, mas não
+         * classifica: encher a fila de "não consegui ler" todas as noites
+         * transformaria a tela num monte de lixo que ninguém abre de novo.
+         *
+         * "Utilizável" inclui ter cara de chave. O texto de exemplo copiado
+         * de uma instrução para dentro do .env já aconteceu aqui (16/11), e
+         * sem esta conferência a varredura gastava uma chamada recusada por
+         * item, toda madrugada, sem nada na tela explicando por quê.
+         */
+        $chave = (string) config('services.anthropic.key');
+        $chaveServe = $chave !== '' && str_starts_with($chave, 'sk-ant-');
 
-        if ($semIa && ! $this->option('sem-ia')) {
-            $this->warn('ANTHROPIC_API_KEY não configurada: coletando sem classificar.');
+        $semIa = $this->option('sem-ia') || ! $chaveServe;
+
+        if (! $this->option('sem-ia') && ! $chaveServe) {
+            $this->warn($chave === ''
+                ? 'ANTHROPIC_API_KEY não configurada: coletando sem classificar.'
+                : 'ANTHROPIC_API_KEY não parece uma chave (deve começar com "sk-ant-"): coletando sem classificar.');
         }
 
         $limite = max(1, (int) $this->option('limite'));
+        $novos = 0;
+        $lidos = 0;
+
+        try {
+            [$novos, $lidos] = $this->varrer($fontes, $limite, $semIa, $leitor, $preview, $coletor);
+        } catch (ChaveRecusada $erro) {
+            $this->error($erro->getMessage());
+            $this->line('  Os links continuam guardados: corrija a chave e rode com --reler para classificá-los.');
+
+            return self::FAILURE;
+        }
+
+        $naFila = RadarItem::esperando()->count();
+
+        $this->info("Radar: {$novos} link(s) novo(s), {$lidos} lido(s). {$naFila} esperando decisão.");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param  array<string, array{nome: string, tipo: string, url: string, host: string}>  $fontes
+     * @return array{0: int, 1: int}
+     */
+    private function varrer(array $fontes, int $limite, bool $semIa, LeitorDeItem $leitor, LinkPreview $preview, Coletor $coletor): array
+    {
         $novos = 0;
         $lidos = 0;
 
@@ -102,11 +141,7 @@ class VarrerRadar extends Command
             }
         }
 
-        $naFila = RadarItem::esperando()->count();
-
-        $this->info("Radar: {$novos} link(s) novo(s), {$lidos} lido(s). {$naFila} esperando decisão.");
-
-        return self::SUCCESS;
+        return [$novos, $lidos];
     }
 
     /**
@@ -167,6 +202,13 @@ class VarrerRadar extends Command
                     : RadarStatus::Novo,
                 'erro' => null,
             ]);
+        } catch (AuthenticationException $erro) {
+            // Chave recusada não é problema DESTE item: é da configuração.
+            // Seguir em frente gastaria uma chamada recusada por item e
+            // marcaria a coleta inteira como ilegível por engano.
+            $item->update(['erro' => 'Chave da API recusada.']);
+
+            throw new ChaveRecusada('A API recusou a chave (ANTHROPIC_API_KEY). Nada foi classificado.', previous: $erro);
         } catch (\Throwable $erro) {
             Log::warning('Radar: falha ao ler item.', ['url' => $item->url, 'erro' => $erro->getMessage()]);
 

@@ -133,6 +133,34 @@ class RadarTest extends TestCase
         $this->actingAs($empresa)->get(route('admin.radar.index'))->assertRedirect();
     }
 
+    // ----- A chave da API -----
+
+    #[Test]
+    public function chave_com_cara_de_exemplo_nao_e_usada(): void
+    {
+        /*
+         * Aconteceu de verdade em 16/11: o texto de exemplo de uma instrução
+         * foi colado dentro do .env. Sem esta conferência a varredura gastava
+         * uma chamada recusada por item, toda madrugada, e a tela não dizia
+         * nada — só enchia de "não consegui ler".
+         */
+        config(['services.anthropic.key' => 'sua-chave-aqui']);
+
+        $this->artisan('atpg:radar', ['--fonte' => 'acipg', '--limite' => 1])
+            ->expectsOutputToContain('não parece uma chave')
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function sem_chave_o_radar_coleta_mas_nao_classifica(): void
+    {
+        config(['services.anthropic.key' => null]);
+
+        $this->artisan('atpg:radar', ['--fonte' => 'acipg', '--limite' => 1])
+            ->expectsOutputToContain('não configurada')
+            ->assertSuccessful();
+    }
+
     // ----- A peneira do que o modelo devolve -----
 
     #[Test]
