@@ -13,7 +13,10 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('portal.company.profile', ['company' => $request->user()->company]);
+        return view('portal.company.profile', [
+            'company' => $request->user()->company?->load('specialties'),
+            'especialidades' => \App\Models\Specialty::orderBy('name')->get(),
+        ]);
     }
 
     public function update(CompanyProfileRequest $request): RedirectResponse
@@ -30,6 +33,10 @@ class ProfileController extends Controller
         }
 
         $company->update($data);
+
+        // O que a empresa sabe fazer, no mesmo vocabulário que as indústrias
+        // usam para dizer do que precisam — é o que faz o cruzamento existir.
+        $company->specialties()->sync($request->input('especialidades', []));
 
         return back()->with('status', 'Dados da empresa atualizados. As mudanças já estão no portal.');
     }

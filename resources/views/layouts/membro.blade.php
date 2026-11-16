@@ -13,6 +13,7 @@
         ...(auth()->user()?->participanteDeReuniao()
             ? [['label' => 'Reuniões', 'icon' => 'calendar', 'route' => route('painel.reunioes.index'), 'active' => request()->routeIs('painel.reunioes.*')]]
             : []),
+        ['label' => 'Indústrias', 'icon' => 'building', 'route' => route('painel.industrias.index'), 'active' => request()->routeIs('painel.industrias.*')],
         ['label' => 'Meu acesso', 'icon' => 'shield', 'route' => route('membro.conta.edit'), 'active' => request()->routeIs('membro.conta.*')],
         // Caminho de volta para quem e da diretoria e tem cadastro de membro.
         ...(auth()->user()?->isAdmin()

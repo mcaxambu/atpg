@@ -31,6 +31,8 @@ class CompanyRequest extends FormRequest
             ],
             'initials' => ['nullable', 'string', 'max:8'],
             'segment' => ['nullable', 'string', 'max:255'],
+            'especialidades' => ['nullable', 'array'],
+            'especialidades.*' => ['integer', 'exists:specialties,id'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'size:2'],
             'zip_code' => ['nullable', 'string', 'max:16'],
@@ -65,7 +67,7 @@ class CompanyRequest extends FormRequest
      */
     public function companyData(?Company $company = null): array
     {
-        $data = $this->safe()->except(['logo']);
+        $data = $this->safe()->except(['logo', 'especialidades']);
 
         $data['slug'] = Company::uniqueSlug($data['name'], $company?->id);
         $data['is_active'] = $data['status'] === ModerationStatus::Approved->value && $this->boolean('is_active');

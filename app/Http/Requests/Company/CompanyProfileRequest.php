@@ -23,6 +23,8 @@ class CompanyProfileRequest extends FormRequest
     {
         return [
             'segment' => ['nullable', 'string', 'max:255'],
+            'especialidades' => ['nullable', 'array'],
+            'especialidades.*' => ['integer', 'exists:specialties,id'],
             'description' => ['nullable', 'string', 'max:5000'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'size:2'],
@@ -47,6 +49,6 @@ class CompanyProfileRequest extends FormRequest
 
     public function profileData(Company $company): array
     {
-        return $this->safe()->except(['logo']);
+        return $this->safe()->except(['logo', 'especialidades']);
     }
 }

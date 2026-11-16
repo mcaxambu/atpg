@@ -9,6 +9,7 @@ use App\Models\Concerns\RendersRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -60,6 +61,40 @@ class Company extends Model
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    /**
+     * O que esta associada sabe fazer.
+     *
+     * Vale o MESMO vocabulário que as indústrias usam para dizer do que
+     * precisam — é o que torna o cruzamento possível. O campo `segment`, que
+     * é texto livre, não serve: há 22 grafias diferentes para 27 cadastros.
+     */
+    public function specialties(): BelongsToMany
+    {
+        return $this->belongsToMany(Specialty::class);
+    }
+
+    /**
+     * As indústrias que precisam do que esta associada faz.
+     *
+     * @return \Illuminate\Support\Collection<int, Industry>
+     */
+    public function industriasQuePodeAtender(): \Illuminate\Support\Collection
+    {
+        $faz = $this->specialties->pluck('id');
+
+        if ($faz->isEmpty()) {
+            return collect();
+        }
+
+        return Industry::query()
+            ->ativas()
+            ->whereHas('specialties', fn (Builder $q) => $q->whereIn('specialties.id', $faz))
+            ->with(['specialties' => fn ($q) => $q->whereIn('specialties.id', $faz)])
+            ->get()
+            ->sortByDesc(fn (Industry $industria) => $industria->specialties->count())
+            ->values();
     }
 
     public function jobOpenings(): HasMany

@@ -75,6 +75,10 @@
             ['label' => 'Atas de reunião', 'module' => 'minutes', 'icon' => 'file', 'route' => route('admin.atas.index'), 'active' => request()->routeIs('admin.atas.*')],
         ]],
 
+        ['Mercado', [
+            ['label' => 'Indústrias', 'module' => 'industries', 'icon' => 'building', 'route' => route('admin.industrias.index'), 'active' => request()->routeIs('admin.industrias.*')],
+        ]],
+
         ['Radar', [
             // O número é o que está esperando decisão: sem ele a fila vira
             // uma tela que ninguém lembra de abrir.

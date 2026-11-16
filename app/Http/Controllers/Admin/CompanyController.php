@@ -7,6 +7,7 @@ use App\Actions\ProvisionCompanyAccess;
 use App\Enums\ModerationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CompanyRequest;
+use App\Models\Specialty;
 use App\Actions\SyncColumnistProfile;
 use App\Models\Company;
 use Illuminate\Http\Request;
@@ -61,6 +62,7 @@ class CompanyController extends Controller
     {
         return view('portal.admin.companies.form', [
             'company' => new Company(['status' => ModerationStatus::Approved, 'is_active' => true]),
+            'especialidades' => Specialty::orderBy('name')->get(),
         ]);
     }
 
@@ -74,6 +76,9 @@ class CompanyController extends Controller
         }
 
         $company = Company::create($data);
+        // O que ela sabe fazer: é este lado que cruza com a necessidade das
+        // indústrias. Sem ele a empresa fica fora de todo cruzamento.
+        $company->specialties()->sync($request->input('especialidades', []));
         $this->sincronizarColunista($company, $request);
 
         return redirect()
@@ -130,7 +135,10 @@ class CompanyController extends Controller
 
     public function edit(Company $company)
     {
-        return view('portal.admin.companies.form', compact('company'));
+        return view('portal.admin.companies.form', [
+            'company' => $company->load('specialties'),
+            'especialidades' => Specialty::orderBy('name')->get(),
+        ]);
     }
 
     public function update(CompanyRequest $request, Company $company)
@@ -143,6 +151,7 @@ class CompanyController extends Controller
         }
 
         $company->update($data);
+        $company->specialties()->sync($request->input('especialidades', []));
         $this->sincronizarColunista($company, $request);
 
         return redirect()

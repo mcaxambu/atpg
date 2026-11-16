@@ -27,6 +27,14 @@
                                placeholder="Ex.: Desenvolvimento de software" class="{{ $input }}">
                     </x-admin.field>
 
+                    <div class="sm:col-span-2">
+                        <x-admin.field label="O que vocês sabem fazer" name="especialidades"
+                                       hint="É assim que o portal mostra em quais indústrias da região você se encaixa.">
+                            <x-admin.specialty-picker :especialidades="$especialidades"
+                                                      :marcadas="old('especialidades', $company->specialties->pluck('id')->all())" />
+                        </x-admin.field>
+                    </div>
+
                     <x-admin.field label="Descrição" name="description" class="sm:col-span-2"
                                    hint="Conte o que a empresa faz, para quem e o que a diferencia.">
                         <textarea name="description" data-editor rows="6" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>

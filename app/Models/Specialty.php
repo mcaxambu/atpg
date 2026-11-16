@@ -23,6 +23,18 @@ class Specialty extends Model
         return $this->belongsToMany(Member::class);
     }
 
+    /** O que as associadas sabem fazer. */
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class);
+    }
+
+    /** O que as indústrias precisam. */
+    public function industries(): BelongsToMany
+    {
+        return $this->belongsToMany(Industry::class);
+    }
+
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         $term = trim((string) $term);

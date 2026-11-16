@@ -38,6 +38,14 @@
                         <input type="text" name="initials" maxlength="8" value="{{ old('initials', $company->initials) }}" class="{{ $input }}">
                     </x-admin.field>
 
+                    <div class="sm:col-span-2">
+                        <x-admin.field label="O que esta empresa sabe fazer" name="especialidades"
+                                       hint="É isto que cruza com a necessidade das indústrias. Sem nada marcado, ela não aparece em nenhum cruzamento.">
+                            <x-admin.specialty-picker :especialidades="$especialidades"
+                                                      :marcadas="old('especialidades', $company->exists ? $company->specialties->pluck('id')->all() : [])" />
+                        </x-admin.field>
+                    </div>
+
                     <x-admin.field label="Descrição" name="description" class="sm:col-span-2">
                         <textarea name="description" data-editor rows="5" class="{{ $input }}">{{ old('description', $company->description) }}</textarea>
                     </x-admin.field>

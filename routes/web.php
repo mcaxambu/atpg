@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\ColumnController as AdminColumnController;
 use App\Http\Controllers\Admin\JobOpeningController as AdminJobController;
+use App\Http\Controllers\Admin\IndustryController;
 use App\Http\Controllers\Admin\MeetingController;
 use App\Http\Controllers\Admin\MeetingMinuteController;
 use App\Http\Controllers\Admin\MeetingParticipationController;
@@ -42,6 +43,7 @@ use App\Http\Controllers\MemberPanel\AccountController as MemberAccountControlle
 use App\Http\Controllers\Panel\ColumnController;
 use App\Http\Controllers\Panel\ColumnistPhotoController;
 use App\Http\Controllers\Panel\ForumController;
+use App\Http\Controllers\Panel\IndustryController as PanelIndustryController;
 use App\Http\Controllers\Panel\ColumnModerationController;
 use App\Http\Controllers\MemberPanel\ProfileController as MemberProfileController;
 use App\Http\Controllers\Portal\ColumnPageController;
@@ -298,6 +300,23 @@ $adminRoutes = function (bool $named = true): void {
             $resource('usuarios', UserController::class, 'user', 'admin.users');
         });
 
+        /*
+         * Industrias: o mercado da associacao.
+         *
+         * Rotas escritas a mao porque o helper $resource exclui o "show", e
+         * aqui a ficha da industria E a tela principal: e nela que aparece
+         * quem do grupo atende.
+         */
+        Route::middleware('module:industries')->group(function () use ($as) {
+            $as(Route::get('industrias', [IndustryController::class, 'index']), 'admin.industrias.index');
+            $as(Route::get('industrias/nova', [IndustryController::class, 'create']), 'admin.industrias.create');
+            $as(Route::post('industrias', [IndustryController::class, 'store']), 'admin.industrias.store');
+            $as(Route::get('industrias/{industria}', [IndustryController::class, 'show'])->whereNumber('industria'), 'admin.industrias.show');
+            $as(Route::get('industrias/{industria}/editar', [IndustryController::class, 'edit']), 'admin.industrias.edit');
+            $as(Route::put('industrias/{industria}', [IndustryController::class, 'update']), 'admin.industrias.update');
+            $as(Route::delete('industrias/{industria}', [IndustryController::class, 'destroy']), 'admin.industrias.destroy');
+        });
+
         // ----- Radar: o que a varredura automatica encontrou -----
         Route::middleware('module:radar')->group(function () use ($as) {
             $as(Route::get('radar', [RadarController::class, 'index']), 'admin.radar.index');
@@ -519,6 +538,10 @@ $reuniaoRoutes = function (bool $named = true): void {
 
         $as(Route::get('checkin', [PanelCheckInController::class, 'show']), 'painel.checkin');
         $as(Route::post('checkin', [PanelCheckInController::class, 'store']), 'painel.checkin.store');
+
+        // Industrias para quem e associado: mesma lista, sem contato.
+        $as(Route::get('industrias', [PanelIndustryController::class, 'index']), 'painel.industrias.index');
+        $as(Route::get('industrias/{slug}', [PanelIndustryController::class, 'show']), 'painel.industrias.show');
     });
 
     // Enderecos antigos do painel da empresa: QR ja escaneado, link ja salvo.
