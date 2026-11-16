@@ -79,6 +79,14 @@
             ['label' => 'Indústrias', 'module' => 'industries', 'icon' => 'building', 'route' => route('admin.industrias.index'), 'active' => request()->routeIs('admin.industrias.*')],
         ]],
 
+        ['Financeiro', [
+            // O número são as mensalidades vencidas: é o que exige ação, e o
+            // que some da cabeça de quem toca tudo sozinho.
+            ['label' => 'Mensalidades', 'module' => 'finance', 'icon' => 'inbox', 'route' => route('admin.financeiro.index'),
+             'active' => request()->routeIs('admin.financeiro.*'),
+             'badge' => \App\Models\Mensalidade::vencidas()->count()],
+        ]],
+
         ['Radar', [
             // O número é o que está esperando decisão: sem ele a fila vira
             // uma tela que ninguém lembra de abrir.

@@ -23,6 +23,17 @@ Artisan::command('inspire', function () {
  *
  * Só enfileira — publicar continua sendo clique de gente.
  */
+/*
+ * Mensalidades do mês, no dia 1.
+ *
+ * O comando é idempotente e recusa rodar sem valor configurado, então um dia
+ * 1 que rode duas vezes não cobra duas vezes nem gera 27 cobranças de R$ 0.
+ */
+Schedule::command('atpg:mensalidades')
+    ->monthlyOn(1, '06:00')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
+
 Schedule::command('atpg:radar --reler=20')
     ->dailyAt('04:30')
     ->timezone(config('app.timezone'))

@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\ColumnController as AdminColumnController;
 use App\Http\Controllers\Admin\JobOpeningController as AdminJobController;
 use App\Http\Controllers\Admin\IndustryController;
 use App\Http\Controllers\Admin\MeetingController;
+use App\Http\Controllers\Admin\MensalidadeController;
+use App\Http\Controllers\Company\MensalidadeController as CompanyMensalidadeController;
 use App\Http\Controllers\Admin\MeetingMinuteController;
 use App\Http\Controllers\Admin\MeetingParticipationController;
 use App\Http\Controllers\Admin\MeetingReceptionController;
@@ -317,6 +319,17 @@ $adminRoutes = function (bool $named = true): void {
             $as(Route::delete('industrias/{industria}', [IndustryController::class, 'destroy']), 'admin.industrias.destroy');
         });
 
+        // ----- Financeiro: mensalidade dos associados -----
+        Route::middleware('module:finance')->group(function () use ($as) {
+            $as(Route::get('financeiro', [MensalidadeController::class, 'index']), 'admin.financeiro.index');
+            $as(Route::post('financeiro/gerar', [MensalidadeController::class, 'gerar']), 'admin.financeiro.gerar');
+            $as(Route::get('financeiro/configuracao', [MensalidadeController::class, 'configuracao']), 'admin.financeiro.configuracao');
+            $as(Route::post('financeiro/configuracao', [MensalidadeController::class, 'salvarConfiguracao']), 'admin.financeiro.configuracao.salvar');
+            $as(Route::post('financeiro/{mensalidade}/pagar', [MensalidadeController::class, 'pagar']), 'admin.financeiro.pagar');
+            $as(Route::post('financeiro/{mensalidade}/reabrir', [MensalidadeController::class, 'reabrir']), 'admin.financeiro.reabrir');
+            $as(Route::post('financeiro/{mensalidade}/situacao', [MensalidadeController::class, 'situacao']), 'admin.financeiro.situacao');
+        });
+
         // ----- Radar: o que a varredura automatica encontrou -----
         Route::middleware('module:radar')->group(function () use ($as) {
             $as(Route::get('radar', [RadarController::class, 'index']), 'admin.radar.index');
@@ -372,6 +385,12 @@ $companyRoutes = function (bool $named = true): void {
 
         // Reunioes e check-in sairam daqui: viraram enderecos de painel, em
         // $reuniaoRoutes, porque o membro sem empresa participa igual.
+
+        // A empresa SO LE as proprias mensalidades: quem da baixa e a
+        // diretoria. Deixar a empresa marcar o proprio pagamento seria
+        // entregar o caixa para quem paga.
+        $as(Route::get('mensalidades', [CompanyMensalidadeController::class, 'index']), 'empresa.mensalidades.index');
+        $as(Route::get('mensalidades/{mensalidade}/recibo', [CompanyMensalidadeController::class, 'recibo']), 'empresa.mensalidades.recibo');
 
         $as(Route::get('atas', [CompanyMeetingMinuteController::class, 'index']), 'empresa.atas.index');
         $as(Route::get('atas/{ata}/baixar', [CompanyMeetingMinuteController::class, 'download']), 'empresa.atas.download');
