@@ -23,7 +23,7 @@ Artisan::command('inspire', function () {
  *
  * Só enfileira — publicar continua sendo clique de gente.
  */
-Schedule::command('atpg:radar')
+Schedule::command('atpg:radar --reler=20')
     ->dailyAt('04:30')
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();

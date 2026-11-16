@@ -23,7 +23,8 @@ class VarrerRadar extends Command
     protected $signature = 'atpg:radar
         {--fonte= : varre só esta fonte}
         {--limite=12 : máximo de itens novos lidos por fonte}
-        {--sem-ia : coleta e guarda sem classificar (não gasta a API)}';
+        {--sem-ia : coleta e guarda sem classificar (não gasta a API)}
+        {--reler=0 : relê N itens que ficaram sem classificação, antes de varrer}';
 
     protected $description = 'Procura eventos, notícias e editais de tecnologia da região';
 
@@ -51,6 +52,13 @@ class VarrerRadar extends Command
         $limite = max(1, (int) $this->option('limite'));
         $novos = 0;
         $lidos = 0;
+
+        // O que foi coletado antes de haver chave (ou numa noite em que a API
+        // falhou) continua guardado; sem isto ele ficaria parado para sempre,
+        // porque a varredura só lê o que acabou de chegar.
+        if (! $semIa && ($quantos = (int) $this->option('reler')) > 0) {
+            $lidos += $this->relerPendentes($quantos, $leitor, $preview);
+        }
 
         foreach ($fontes as $slug => $fonte) {
             $candidatos = $coletor->coletar($slug);
@@ -99,6 +107,33 @@ class VarrerRadar extends Command
         $this->info("Radar: {$novos} link(s) novo(s), {$lidos} lido(s). {$naFila} esperando decisão.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Relê o que ficou sem classificação, do mais recente para o mais antigo.
+     */
+    private function relerPendentes(int $quantos, LeitorDeItem $leitor, LinkPreview $preview): int
+    {
+        $pendentes = RadarItem::where('status', RadarStatus::Ilegivel)
+            ->orderByDesc('created_at')
+            ->limit($quantos)
+            ->get();
+
+        foreach ($pendentes as $item) {
+            $this->classificar($item, [
+                'fonte' => $item->fonte,
+                'url' => $item->url,
+                'titulo' => (string) $item->titulo_original,
+                'resumo' => $item->resumo_original,
+                'publicado_em' => $item->publicado_em,
+            ], $leitor, $preview);
+        }
+
+        if ($pendentes->isNotEmpty()) {
+            $this->line('  relidos: '.$pendentes->count());
+        }
+
+        return $pendentes->count();
     }
 
     /**
